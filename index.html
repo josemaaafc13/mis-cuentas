@@ -447,6 +447,23 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   box-shadow:0 20px 50px rgba(8,60,120,.35)}
 .intro .bub{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;font-size:1.7rem;opacity:0}
 
+/* Pagos de Apple Pay: guía y bandeja */
+.steps{margin:4px 0 0;padding-left:20px;line-height:1.45}
+.steps li{margin:8px 0}
+.steps b{font-weight:700}
+.code{position:relative;margin:10px 0 4px;padding:12px 14px;border-radius:14px;font:600 .78rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+  word-break:break-all;background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim)}
+.pay-list{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px;max-height:52dvh;overflow:auto}
+.pay-row{display:grid;grid-template-columns:42px 1fr auto auto auto;align-items:center;gap:8px;padding:8px 10px;border-radius:18px;
+  background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim)}
+.pay-row .ico{width:42px;height:42px;font-size:1.2rem}
+.pay-row b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pay-row small{color:var(--muted);font-size:.76rem}
+.pay-row .txt{min-width:0}
+.pay-row .ok,.pay-row .no{width:32px;height:32px;border-radius:50%;font-weight:800}
+.pay-row .ok{color:#fff;background:var(--green)} .pay-row .no{color:var(--muted);background:var(--lg-fill);box-shadow:inset 0 0 0 1px var(--lg-fill-rim)}
+.pay-row .cat-strip{grid-column:1 / -1;padding-top:4px}
+
 /* Aviso */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);z-index:60;display:flex;align-items:center;gap:14px;
   padding:12px 12px 12px 18px;border-radius:20px;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);
@@ -596,6 +613,14 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     </div>
     <input type="file" id="importFile" accept=".json,application/json" hidden>
     <p class="grp-note" id="backupNote"></p>
+
+    <h4 class="grp-t">Pagos de Apple Pay</h4>
+    <div class="grp">
+      <button class="row" id="payGuide"><span class="ico bub" style="--c:#5E5CE6">💡</span><span>Cómo configurarlo</span><i>›</i></button>
+      <button class="row" id="payImport"><span class="ico bub" style="--c:#0EA5E9">📲</span><span>Importar pagos</span><i>›</i></button>
+    </div>
+    <input type="file" id="payFile" accept=".txt,.json,text/plain,application/json" hidden>
+    <p class="grp-note" id="payNote">Con un atajo del iPhone, cada pago con Apple Pay se guarda y aquí lo añades con dos toques.</p>
 
     <h4 class="grp-t">Presupuesto mensual</h4>
     <div class="grp">
@@ -1609,7 +1634,7 @@ const settingsPanel = $('#settings'), gear = $('#gear');
 gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, renderSettings));
 
 function renderSettings(){
-  updateBackupUI();
+  updateBackupUI(); updatePayNote();
   settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
@@ -1739,6 +1764,143 @@ $('#importFile').addEventListener('change', async e => {
   navigator.vibrate?.(12);
   toast(`Copia importada · ${movs.length} movimientos`, () => apply(prev));
 });
+
+// ── Pagos de Apple Pay: un atajo de iOS guarda cada pago en un archivo y aquí se importan ──
+const PAY_LINE = '{"amount":"[Importe]","merchant":"[Comercio]","card":"[Tarjeta]","date":"[Fecha formateada]"}';
+// Importes en cualquier formato: "12,50 €", "€12.50", "1.234,56 €", "40.00"
+function parseMoney(v){
+  if (typeof v === 'number') return Math.abs(v);
+  let t = String(v || '').replace(/[^\d.,]/g, '');
+  const lc = t.lastIndexOf(','), ld = t.lastIndexOf('.');
+  if (lc > -1 && ld > -1) t = lc > ld ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+  else if (lc > -1) t = /,\d{1,2}$/.test(t) ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+  else if (ld > -1 && !/\.\d{1,2}$/.test(t)) t = t.replace(/\./g, '');
+  return Math.abs(parseFloat(t));
+}
+// Categoría sugerida por el nombre del comercio
+const GUESS = [
+  ['comida', /mercadona|carrefour|lidl|\bdia\b|aldi|eroski|consum|alcampo|hipercor|ahorramas|restaur|\bbar\b|cafe|burger|mcdonald|kfc|telepizza|glovo|just ?eat|uber ?eats|panader/],
+  ['coche', /repsol|cepsa|\bbp\b|shell|galp|petronor|parking|aparcamiento|taller|itv|autopista/],
+  ['transporte', /renfe|metro|uber|cabify|bolt|\bemt\b|alsa|bus|taxi|bicimad|ouigo|iryo/],
+  ['suscripciones', /netflix|spotify|apple|icloud|hbo|\bmax\b|disney|prime|youtube|movistar|vodafone|orange|digi/],
+  ['salud', /farmacia|clinica|dental|optica|hospital/],
+  ['ropa', /zara|h&m|h ?& ?m|primark|mango|pull|bershka|stradivarius|decathlon|nike|adidas/],
+  ['ocio', /cine|ticketmaster|teatro|museo|steam|playstation|xbox|nintendo/],
+  ['hogar', /ikea|leroy|bricomart|bauhaus|maisons|zara home|el corte ingl/],
+  ['viajes', /ryanair|vueling|iberia|booking|airbnb|hotel|easyjet/],
+  ['regalos', /regalo|floristeria|juguet/],
+];
+const guessCat = name => (GUESS.find(([, re]) => re.test(norm(name))) || ['comida'])[0];
+const payKey = p => `${p.date.slice(0, 16)}|${p.amount.toFixed(2)}|${p.merchant.toLowerCase()}`;
+function parsePayLines(text){
+  const out = [];
+  for (const line of String(text).split(/\r?\n/)){
+    const l = line.trim(); if (!l) continue;
+    let o; try { o = JSON.parse(l); } catch { continue; }                 // líneas rotas: se ignoran
+    if (!o || typeof o !== 'object') continue;
+    const amount = Math.round(parseMoney(o.amount) * 100) / 100;
+    if (!(amount > 0) || amount >= 1e7) continue;
+    const d = new Date(o.date), date = (isNaN(d) ? new Date() : d).toISOString();
+    const merchant = (typeof o.merchant === 'string' && o.merchant.trim() ? o.merchant.trim() : 'Apple Pay').slice(0, 40);
+    out.push({amount, merchant, date, cat: guessCat(merchant)});
+  }
+  return out;
+}
+function updatePayNote(){
+  const last = settings.lastPayImport && new Date(settings.lastPayImport);
+  if (!last) return;
+  const days = Math.floor((Date.now() - last) / 864e5);
+  $('#payNote').textContent = `Última importación: ${days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} días`}` +
+    (days > 3 ? ' · puede que tengas pagos nuevos esperando.' : '.');
+}
+const fromSettings = fn => { closeGrow(); setTimeout(fn, reduceMotion() ? 0 : 480); };   // la hoja va debajo del panel
+$('#payGuide').addEventListener('click', () => fromSettings(() => {
+  openSheet(`
+    <div class="sheet-head"><h3>Pagos de Apple Pay</h3><button class="close" data-close>✕</button></div>
+    <p class="grp-note" style="margin:0 2px">Una vez configurado, cada vez que pagues con Apple Pay el iPhone guarda el pago y te avisa. Luego aquí, en ⚙ → Importar pagos, los añades.</p>
+    <ol class="steps">
+      <li>Abre <b>Atajos</b> → pestaña <b>Automatización</b> → <b>+</b> → <b>Transacción</b>. Elige tus tarjetas y marca <b>Ejecutar inmediatamente</b>.</li>
+      <li>Añade <b>Formatear fecha</b>: fecha <b>Fecha actual</b>, formato <b>ISO 8601</b>.</li>
+      <li>Añade <b>Texto</b> y pega esto. Después cambia cada [ ] por su variable (Importe, Comercio, Tarjeta y Fecha formateada):
+        <div class="code" id="payCode">${esc(PAY_LINE)}</div>
+        <button class="ghost" id="payCopy" style="margin-top:4px;padding:10px">Copiar texto</button></li>
+      <li>Añade <b>Añadir al archivo de texto</b>: archivo <b>Atajos/mis-cuentas-pagos.txt</b>, con <b>Nueva línea</b> activado.</li>
+      <li>Añade <b>Mostrar notificación</b>: «💳 [Importe] en [Comercio] · guardado para Mis Cuentas».</li>
+    </ol>
+    <p class="grp-note" style="margin:6px 2px 0">Solo funciona con pagos de Apple Pay (iOS 17 o posterior). Los ingresos y Bizum no pasan por Wallet.</p>`, '', '#5E5CE6');
+  $('#payCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(PAY_LINE); toast('✓ Texto copiado'); }
+    catch { const r = document.createRange(); r.selectNodeContents($('#payCode')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Selecciona y copia el texto'); }
+  });
+}));
+$('#payImport').addEventListener('click', () => $('#payFile').click());
+$('#payFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const seen = new Set(settings.payImported || []);
+  // Sin duplicados: ni los ya importados ni los repetidos dentro del mismo archivo
+  const fresh = parsePayLines(await f.text()).filter(p => { const k = payKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
+  settings.lastPayImport = new Date().toISOString(); saveSettings(); updatePayNote();
+  if (!fresh.length){ toast('No hay pagos nuevos'); return; }
+  fromSettings(() => openPayTray(fresh));
+});
+function markPays(list){
+  settings.payImported = [...(settings.payImported || []), ...list.map(payKey)].slice(-1000); saveSettings();
+}
+function openPayTray(list){
+  const row = (p, i) => { const c = CATS.find(k => k.id === p.cat);
+    return `<div class="pay-row" data-i="${i}"><button class="ico bub pick" style="--c:${c.color}" aria-label="Cambiar categoría">${c.emoji}</button>
+      <div class="txt"><b>${esc(p.merchant)}</b><small>${new Date(p.date).toLocaleDateString('es-ES', {day:'numeric', month:'short'})} · ${c.name}</small></div>
+      <span class="amt out">−${eur.format(p.amount)}</span>
+      <button class="ok" aria-label="Añadir">✓</button><button class="no" aria-label="Descartar">✕</button>
+      <div class="cat-strip" hidden>${CATS.map(k => `<button data-cat="${k.id}" style="--c:${k.color}"${k.id === p.cat ? ' class="on"' : ''}><span class="ico bub">${k.emoji}</span>${k.name}</button>`).join('')}</div></div>`; };
+  const left = () => list.filter(p => !p.done);
+  const paint = () => {
+    const l = left();
+    $('#payTitle').textContent = `📲 ${l.length} ${l.length === 1 ? 'pago nuevo' : 'pagos nuevos'}`;
+    $('#payAll').textContent = `Añadir todos (−${eur.format(l.reduce((t, p) => t + p.amount, 0))})`;
+    if (!l.length) closeSheet();
+  };
+  openSheet(`
+    <div class="sheet-head"><h3 id="payTitle"></h3><button class="close" data-close>✕</button></div>
+    <p class="grp-note" style="margin:0 2px 4px">Toca la burbuja para cambiar la categoría. Se añaden como gastos con 💳 Tarjeta.</p>
+    <div class="pay-list" id="payList">${list.map(row).join('')}</div>
+    <button class="primary" id="payAll"></button>`, 'out', '#0EA5E9');
+  paint();
+  const add = ps => {
+    const before = spentBefore(ps[0].cat);
+    ps.forEach((p, k) => { movs.push({id:Date.now() + k, type:'out', amount:p.amount, cat:p.cat, note:p.merchant, date:p.date, acc:'card'}); p.done = true; });
+    markPays(ps); chartDrawn = false; save();
+    return before;
+  };
+  $('#payList').addEventListener('click', e => {
+    const r = e.target.closest('.pay-row'); if (!r) return;
+    const p = list[+r.dataset.i];
+    if (e.target.closest('.pick')){ const st = r.querySelector('.cat-strip'); st.hidden = !st.hidden; return; }
+    const cb = e.target.closest('.cat-strip button');
+    if (cb){ p.cat = cb.dataset.cat; const c = CATS.find(k => k.id === p.cat), pk = r.querySelector('.pick');
+      pk.style.setProperty('--c', c.color); pk.textContent = c.emoji; r.querySelector('small').textContent = `${new Date(p.date).toLocaleDateString('es-ES', {day:'numeric', month:'short'})} · ${c.name}`;
+      r.querySelectorAll('.cat-strip button').forEach(x => x.classList.toggle('on', x === cb)); r.querySelector('.cat-strip').hidden = true; return; }
+    const ok = e.target.closest('.ok'), no = e.target.closest('.no');
+    if (!ok && !no) return;
+    navigator.vibrate?.(8);
+    if (ok){ add([p]); render(); } else { p.done = true; markPays([p]); }
+    const gone = r.animate({opacity:[1, 0], transform:['none', `translateX(${ok ? 40 : -40}px)`]}, {duration:220, easing:'ease-in'});
+    gone.finished.then(() => { r.remove(); paint(); });
+  });
+  $('#payAll').addEventListener('click', () => {
+    const l = left(); if (!l.length) return;
+    const prev = accBalance('card'), total = l.reduce((t, p) => t + p.amount, 0), before = add(l);
+    settings.face = 'card'; saveSettings(); closeSheet();
+    shownBalance = prev;                                         // el conteo arranca en el saldo de la tarjeta
+    if (scrollY > 0) scrollTo({top:0}); if (page !== 0) goPage(0);
+    navigator.vibrate?.(12);
+    setTimeout(() => {
+      render('out', total);
+      budgetAlert(before, movs.at(-1));
+      toast(`✓ ${l.length} ${l.length === 1 ? 'pago' : 'pagos'} de Apple Pay ${l.length === 1 ? 'añadido' : 'añadidos'}`);
+    }, reduceMotion() ? 0 : 260);
+  });
+}
 
 // ── Fijos: se apuntan solos el mismo día de cada mes (y los meses pendientes si la app no se abrió) ──
 function runRecurring(){
