@@ -1,7 +1,7 @@
 // Guarda la app en el móvil para que abra sin conexión.
 // Cambia VERSION cada vez que publiques cambios para que el móvil descargue la nueva.
-const VERSION = 'miscuentas-v9';
-const FILES = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './vendor/three.module.min.js'];
+const VERSION = 'miscuentas-v10';
+const FILES = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

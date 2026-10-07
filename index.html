@@ -383,12 +383,21 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   background:rgba(255,255,255,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
 .acc-total{margin:-12px 0 16px;font-size:.8rem;font-weight:700;color:#24506F;font-variant-numeric:tabular-nums}
 #balCard{cursor:pointer}
-#balWrap.cash .blob.b1{background:#34D399} #balWrap.cash .blob.b2{background:#A7F3D0} #balWrap.cash .blob.b4{background:#2DD4BF}
-#balWrap.cash .card{background:rgba(220,252,231,.28)}
-#balWrap.flipping{visibility:hidden}
+/* Cambio de piel azul ↔ verde: la tarjeta no se mueve, los colores se funden en su sitio */
+.blob{transition:background-color .8s var(--ease-ios)}
+.card-wrap .card{transition:background-color .8s var(--ease-ios)}
+.card-wrap.cash .blob.b1{background:#34D399} .card-wrap.cash .blob.b2{background:#A7F3D0} .card-wrap.cash .blob.b4{background:#2DD4BF}
+.card-wrap.cash .card{background:rgba(220,252,231,.28)}
+.sheen{position:absolute;top:-30%;bottom:-30%;left:0;width:40%;pointer-events:none;opacity:0;z-index:2;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-120%) skewX(-14deg)}
+/* Odómetro: cada dígito es una ventana de una línea con una columna de números que sube */
+.odo{display:inline-block;height:1.05em;overflow:hidden;vertical-align:top}
+.odo-c{display:block}
+.odo-c i{display:block;font-style:normal;height:1.05em;line-height:1.05em}
+.odo-s{display:inline-block;height:1.05em;line-height:1.05em;vertical-align:top;white-space:pre}
+.zoom.cash{background:linear-gradient(180deg,color-mix(in srgb,#22C55E 18%,var(--lg-top)),var(--lg-bottom) 70%)}
 @media (prefers-color-scheme:dark){.acc-total{color:#B5D3E8} .flip-hint{background:rgba(255,255,255,.1);box-shadow:none}
-  #balWrap.cash .card{background:rgba(6,40,30,.32)}}
-.flip3d{position:fixed;z-index:15;pointer-events:none}
+  .card-wrap.cash .card{background:rgba(6,40,30,.32)}}
 
 /* Selector de cuenta al añadir */
 .accs{display:flex;justify-content:center;gap:22px;margin:12px 0 2px}
@@ -482,7 +491,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <div class="page" aria-label="Saldo">
       <div class="card-wrap" id="balWrap">
       <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
-      <section class="card" id="balCard" role="button" tabindex="0" aria-label="Girar entre tarjeta y efectivo">
+      <section class="card" id="balCard" role="button" tabindex="0" aria-label="Cambiar entre tarjeta y efectivo"><i class="sheen" aria-hidden="true"></i>
         <div class="bal-wrap"><div class="label acc-label"><span id="accLabel">💳 Tarjeta</span><span class="flip-hint" aria-hidden="true">↻</span></div>
         <div class="balance" id="balance">0,00 €</div>
         <div class="acc-total" id="accTotal"></div>
@@ -496,11 +505,11 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
       </div>
     </div>
     <div class="page" aria-label="Resumen">
-      <div class="card-wrap">
+      <div class="card-wrap" id="sumWrap">
       <i class="blob b2"></i><i class="blob b3"></i><i class="blob b1"></i><i class="blob b4"></i>
       <section class="card" id="sumCard" role="button" tabindex="0" aria-label="Ver gastos por categoría">
         <span class="more">Categorías<svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div class="sum-head"><div class="label">Últimos 6 meses</div>
+        <div class="sum-head"><div class="label" id="sumLabel">Últimos 6 meses</div>
           <div class="legend"><span><i></i>Ingresos</span><span class="lo"><i></i>Gastos</span></div></div>
         <div class="net" id="net">0 €<small>ahorrado</small></div>
         <svg id="chart" role="img" aria-label="Gráfica de ingresos y gastos de los últimos 6 meses"></svg>
@@ -555,7 +564,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 <!-- Panel de gastos por categoría: nace de la tarjeta de Resumen y se amplía -->
 <section class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Gastos por categoría" hidden>
   <div class="zoom-in">
-    <div class="sheet-head"><h3>Gastos por categoría</h3><button class="close" data-grow-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3 id="zoomTitle">Gastos por categoría</h3><button class="close" data-grow-close aria-label="Cerrar">✕</button></div>
     <div class="seg" id="seg" role="tablist">
       <button data-span="1" class="on">Mes</button><button data-span="3">3 meses</button><button data-span="6">6 meses</button><button data-span="12">Año</button>
     </div>
@@ -592,6 +601,10 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <div class="grp">
       <label class="row"><span class="ico bub" style="--c:#0369A1">🎯</span><span>Total al mes</span>
         <input class="mini" id="budgetTotal" inputmode="decimal" placeholder="Sin límite" autocomplete="off"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta al mes</span>
+        <input class="mini" data-accb="card" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo al mes</span>
+        <input class="mini" data-accb="cash" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
     </div>
     <p class="grp-note">Límites por categoría (opcionales). La barra se pone naranja al 80 % y roja al pasarte.</p>
     <div class="grp" id="catBudgets"></div>
@@ -648,7 +661,7 @@ function save(){ try { localStorage.setItem(KEY, JSON.stringify(movs)); } catch 
 // Ajustes (presupuesto, última copia) y movimientos fijos: claves aparte, todo opcional
 const SKEY = 'miscuentas.settings.v1', RKEY = 'miscuentas.recurring.v1';
 const readJSON = (k, def) => { try { const r = localStorage.getItem(k); if (r) return JSON.parse(r); } catch {} return def; };
-let settings = {budget:null, catBudgets:{}, lastBackup:null, opening:null, lastAcc:'card', face:'card', ...readJSON(SKEY, {})};
+let settings = {budget:null, catBudgets:{}, accBudgets:{}, lastBackup:null, opening:null, lastAcc:'card', face:'card', ...readJSON(SKEY, {})};
 // Dos tipos de dinero. Los movimientos antiguos (sin acc) cuentan como tarjeta
 const ACCS = {card:{name:'Tarjeta', emoji:'💳', color:'#0EA5E9'}, cash:{name:'Efectivo', emoji:'💵', color:'#22C55E'}};
 const accOf = m => m.acc === 'cash' ? 'cash' : 'card';
@@ -702,6 +715,8 @@ function render(tone, amount){
   $('#accLabel').textContent = `${ACCS[face].emoji} ${ACCS[face].name}`;
   $('#accTotal').textContent = `Total ${eur.format(total)}`;
   $('#balWrap').classList.toggle('cash', face === 'cash');
+  $('#sumWrap').classList.toggle('cash', face === 'cash');
+  $('#sumLabel').textContent = `Últimos 6 meses · ${ACCS[face].emoji}`;
   $('#monthIn').textContent  = eur0.format(mo.in);
   $('#monthOut').textContent = eur0.format(mo.out);
   countTo(accBalance(face), tone, amount);
@@ -756,11 +771,13 @@ function renderList(){
 
 // Barra del presupuesto total en la tarjeta: verde, naranja desde el 80 %, roja al pasarse
 function renderBudget(spent){
-  const box = $('#budgetBar'), lim = settings.budget;
+  // Si la cuenta visible tiene su propio límite se muestra ese; si no, el global
+  const f = curFace(), accLim = settings.accBudgets?.[f], box = $('#budgetBar'), lim = accLim || settings.budget;
   box.hidden = !lim; if (!lim) return;
+  if (accLim) spent = accMonth(f).out;
   const r = spent / lim;
   box.classList.toggle('warn', r >= .8 && r <= 1); box.classList.toggle('over', r > 1);
-  box.querySelector('small').textContent = `${eur0.format(spent)} de ${eur0.format(lim)}` +
+  box.querySelector('small').textContent = `${accLim ? ACCS[f].emoji + ' ' : ''}${eur0.format(spent)} de ${eur0.format(lim)}` +
     (r > 1 ? ` · te has pasado ${eur0.format(spent - lim)}` : ` · quedan ${eur0.format(lim - spent)}`);
   requestAnimationFrame(() => box.querySelector('i').style.transform = `scaleX(${Math.min(1, r)})`);
 }
@@ -775,13 +792,16 @@ function budgetAlert(before, m){
                      : `⚠️ ${name}: llevas el ${Math.round(now / lim * 100)} %`;
     return null;
   };
+  const a = accOf(m);
   const msg = check(settings.catBudgets[m.cat], spent(m.cat), before.cat, catOf(m).name)
+           || check(settings.accBudgets?.[a], accMonth(a).out, before.accs[a], `${ACCS[a].emoji} ${ACCS[a].name}`)
            || check(settings.budget, spent(), before.total, 'Presupuesto');
   if (msg) setTimeout(() => toast(msg), 2300);
 }
 const spentBefore = cat => ({
   total: movs.filter(x => x.type === 'out' && sameMonth(x.date)).reduce((s,x) => s + x.amount, 0),
-  cat:   movs.filter(x => x.type === 'out' && sameMonth(x.date) && x.cat === cat).reduce((s,x) => s + x.amount, 0)});
+  cat:   movs.filter(x => x.type === 'out' && sameMonth(x.date) && x.cat === cat).reduce((s,x) => s + x.amount, 0),
+  accs:  {card: accMonth('card').out, cash: accMonth('cash').out}});
 
 // ── Gráfica de resumen: dos curvas suaves en SVG, sin librerías ──
 function aggregateByMonth(list, n){
@@ -811,7 +831,7 @@ function smoothPath(pts){
   return d;
 }
 function drawChart(animate){
-  const data = aggregateByMonth(movs, 6);
+  const data = aggregateByMonth(movs.filter(m => accOf(m) === curFace()), 6);   // solo la cuenta visible
   const sumIn = data.reduce((s,x) => s + x.in, 0), sumOut = data.reduce((s,x) => s + x.out, 0), net = sumIn - sumOut;
   $('#net').innerHTML = `${net < 0 ? '−' : ''}${eur0.format(Math.abs(net))}<small>${net < 0 ? 'de más gastado' : 'ahorrado'}</small>`;
 
@@ -852,6 +872,7 @@ function animateChart(){
 let countRaf = 0;
 function countTo(target, tone, amount){
   const el = $('#balance'), from = shownBalance, t0 = performance.now();
+  if (rollingNum){ shownBalance = target; return; }             // el número está rodando: lo deja terminar
   // Conteo lento (1,8 s) cuando viene de añadir algo, para poder disfrutarlo
   const dur = tone && !reduceMotion() ? 1800 : tone ? 0 : 700;
   if (tone && amount) floatDelta(tone, amount, dur);
@@ -1331,6 +1352,9 @@ function drawBubbles(rows, total, motion){
 }
 
 function renderZoom(animate){
+  const zf = curFace();
+  $('#zoomTitle').textContent = `Gastos · ${ACCS[zf].emoji} ${ACCS[zf].name}`;
+  zoom.classList.toggle('cash', zf === 'cash');
   const {start, stop, label} = zoomRange();
   $('#periodLbl').textContent = label;
   $('#nextP').disabled = zEnd === 0;
@@ -1339,7 +1363,7 @@ function renderZoom(animate){
   const by = new Map();
   movs.forEach(m => {
     const d = new Date(m.date);
-    if (m.type !== 'out' || d < start || d >= stop) return;
+    if (m.type !== 'out' || accOf(m) !== curFace() || d < start || d >= stop) return;
     const c = catOf(m); by.set(c, (by.get(c) || 0) + m.amount);
   });
   const rows = [...by].sort((a, b) => b[1] - a[1]), total = rows.reduce((t, r) => t + r[1], 0);
@@ -1472,100 +1496,57 @@ function resetFilters(){
 }
 $('#fReset').addEventListener('click', resetFilters);
 
-// ── Girar la tarjeta: Tarjeta ↔ Efectivo, con Three.js ──
-// Durante el giro, Three.js pinta la tarjeta como un objeto 3D (las dos caras dibujadas en canvas, con
-// brillo de cristal y una luz que la cruza). Al terminar se quita y vuelve la tarjeta HTML nítida.
+// ── Cambiar Tarjeta ↔ Efectivo ──
+// Recetas HyperFrames llevadas a WAAPI: theme-crossfade-morph (la tarjeta, el ancla, no se mueve; su piel
+// azul/verde se funde en el sitio y un brillo la cruza) y vertical-spring-ticker (cada dígito del saldo
+// sube por su ventana con un muelle, escalonado, como un cuentakilómetros).
 const balCard = $('#balCard'), balWrap = $('#balWrap');
-let flip = null, threeP = null;
-const webglOK = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
-function setFace(f){ settings.face = f; saveSettings(); shownBalance = accBalance(f); render(); }
-function fadeFlip(to){
-  balCard.animate({opacity:[1, 0, 1], transform:['none', 'scale(.97)', 'none']}, {duration:320, easing:'ease-in-out'});
-  setTimeout(() => setFace(to), 160);
+const curFace = () => settings.face === 'cash' ? 'cash' : 'card';
+let rollingNum = false, rollGen = 0, rollTarget = '';
+function rollNumber(el, from, to, dur = 780){
+  const L = Math.max(from.length, to.length), a = from.padStart(L, ' '), b = to.padStart(L, ' '), anims = [];
+  el.textContent = '';
+  for (let i = 0; i < L; i++){
+    const x = a[i], y = b[i];
+    if (/\d/.test(y) && (/\d/.test(x) || x === ' ')){
+      const win = document.createElement('span'), col = document.createElement('span');
+      win.className = 'odo'; col.className = 'odo-c';
+      col.innerHTML = Array.from({length:30}, (_, k) => `<i>${k % 10}</i>`).join('');
+      win.appendChild(col); el.appendChild(win);
+      const st = /\d/.test(x) ? +x : 0, en = +y + 10 + (+y < st ? 10 : 0);   // siempre al menos una vuelta
+      anims.push(col.animate([{transform:`translateY(${-st * 1.05}em)`}, {transform:`translateY(${-en * 1.05}em)`}],
+        {duration:dur, delay:i * 35, easing:'cubic-bezier(.34,1.35,.64,1)', fill:'forwards'}));
+    } else {
+      const ch = document.createElement('span'); ch.className = 'odo-s'; ch.textContent = y === ' ' ? '' : y; el.appendChild(ch);
+      if (x !== y && y !== ' ') anims.push(ch.animate({opacity:[0, 1]}, {duration:300, delay:250, fill:'backwards'}));
+    }
+  }
+  return anims;
 }
-// Dibuja una cara de la tarjeta copiando la posición real de cada texto de la tarjeta HTML
-function faceTexture(THREE, f, w, h, dpr){
-  const c = document.createElement('canvas'); c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
-  const g = c.getContext('2d'); g.scale(dpr, dpr);
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches, cr = balCard.getBoundingClientRect();
-  const at = el => { const r = el.getBoundingClientRect(); return {x:r.left - cr.left, y:r.top - cr.top, h:r.height}; };
-  const grad = g.createLinearGradient(0, 0, w, h);
-  const cols = f === 'card' ? (dark ? ['#16476E', '#0B2A44'] : ['#B4EEFC', '#7CC7F7']) : (dark ? ['#11493D', '#082C25'] : ['#C8F7DC', '#6EE7B7']);
-  grad.addColorStop(0, cols[0]); grad.addColorStop(1, cols[1]);
-  g.beginPath(); g.roundRect(0, 0, w, h, 28); g.fillStyle = grad; g.fill();
-  const sheen = g.createLinearGradient(0, 0, 0, h * .5); sheen.addColorStop(0, 'rgba(255,255,255,.45)'); sheen.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = sheen; g.fill();
-  g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.roundRect(.75, .75, w - 1.5, h - 1.5, 27.5); g.stroke();
-  const ink = dark ? '#EAF5FD' : '#0A2540', sub = dark ? '#B5D3E8' : '#24506F', font = '-apple-system, BlinkMacSystemFont, system-ui, sans-serif';
-  g.textBaseline = 'top';
-  const lab = at($('#accLabel'));
-  g.fillStyle = sub; g.font = `700 13.6px ${font}`; g.fillText(`${ACCS[f].emoji} ${ACCS[f].name}`, lab.x, lab.y + 1);
-  const bal = at($('#balance')), fs = parseFloat(getComputedStyle($('#balance')).fontSize);
-  g.fillStyle = ink; g.font = `800 ${fs}px ${font}`; g.fillText(eur.format(accBalance(f)), bal.x, bal.y + fs * .06);
-  const tot = at($('#accTotal'));
-  g.fillStyle = sub; g.font = `700 12.8px ${font}`; g.fillText($('#accTotal').textContent, tot.x, tot.y + 1);
-  const mo = accMonth(f), s1 = at($('#monthIn')), s2 = at($('#monthOut'));
-  g.fillStyle = ink; g.font = `700 16.8px ${font}`; g.fillText(eur0.format(mo.in), s1.x, s1.y + 1); g.fillText(eur0.format(mo.out), s2.x, s2.y + 1);
-  const [l1, l2] = [...document.querySelectorAll('.stat span')].map(at);
-  g.fillStyle = sub; g.font = `700 12px ${font}`; g.fillText('↓ Ingresos del mes', l1.x, l1.y + 2); g.fillText('↑ Gastos del mes', l2.x, l2.y + 2);
-  if (f === 'card'){ g.fillStyle = '#F6C453'; g.beginPath(); g.roundRect(w - 62, 22, 38, 28, 7); g.fill();
-    g.strokeStyle = 'rgba(160,110,20,.6)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(w - 62, 36); g.lineTo(w - 24, 36); g.moveTo(w - 43, 22); g.lineTo(w - 43, 50); g.stroke(); }
-  else { g.font = `26px ${font}`; g.fillText('💵', w - 56, 20); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  return t;
-}
-async function flipCard(){
-  if (flip){ flip.target = flip.target > 1 ? 0 : Math.PI; return; }   // tocar a mitad de giro lo invierte
-  const from = settings.face === 'cash' ? 'cash' : 'card', to = from === 'card' ? 'cash' : 'card';
+async function switchFace(){
+  const el = $('#balance');
+  // Tocar a mitad: el cambio en curso salta al final y empieza el cambio de vuelta
+  const oldTxt = rollingNum ? rollTarget : el.textContent;
+  el.getAnimations({subtree:true}).forEach(a => a.cancel());
+  const to = curFace() === 'card' ? 'cash' : 'card', newTxt = eur.format(accBalance(to)), gen = ++rollGen;
   navigator.vibrate?.(8);
-  if (reduceMotion() || !webglOK) return fadeFlip(to);
-  let THREE;
-  try { THREE = await (threeP ||= import('./vendor/three.module.min.js')); } catch { threeP = null; return fadeFlip(to); }
-  if (flip) return;
-  const r = balCard.getBoundingClientRect(), M = 70, dpr = Math.min(devicePixelRatio || 1, 2);
-  const W = r.width + 2 * M, H = r.height + 2 * M;
-  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-  renderer.setPixelRatio(dpr); renderer.setSize(W, H); renderer.outputColorSpace = THREE.SRGBColorSpace;
-  const cv = renderer.domElement; cv.className = 'flip3d';
-  Object.assign(cv.style, {left:`${r.left - M}px`, top:`${r.top - M}px`, width:`${W}px`, height:`${H}px`});
-  const scene = new THREE.Scene(), fov = 30, camZ = (H / 2) / Math.tan(fov * Math.PI / 360);
-  const camera = new THREE.PerspectiveCamera(fov, W / H, 1, camZ * 4); camera.position.z = camZ;
-  scene.add(new THREE.AmbientLight(0xffffff, 1.7));
-  const light = new THREE.DirectionalLight(0xffffff, 2.4); light.position.set(-400, 250, 500); scene.add(light);
-  const mat = tex => new THREE.MeshPhysicalMaterial({map:tex, transparent:true, roughness:.3, metalness:0, clearcoat:1, clearcoatRoughness:.12, iridescence:.35});
-  const geo = new THREE.PlaneGeometry(r.width, r.height);
-  const front = new THREE.Mesh(geo, mat(faceTexture(THREE, from, r.width, r.height, dpr)));
-  const back = new THREE.Mesh(geo, mat(faceTexture(THREE, to, r.width, r.height, dpr)));
-  front.position.z = 1.5; back.position.z = -1.5; back.rotation.y = Math.PI;
-  const group = new THREE.Group(); group.add(front, back); scene.add(group);
-  document.body.appendChild(cv);
-  renderer.render(scene, camera);
-  balWrap.classList.add('flipping');
-  flip = {target:Math.PI, a:0, v:0};
-  const K = 120, C = 2 * Math.sqrt(K) * .74;               // muelle con un pelín de rebote
-  let last = performance.now();
-  const finish = done => {
-    if (done){ settings.face = to; saveSettings(); }
-    shownBalance = accBalance(settings.face); render();
-    balWrap.classList.remove('flipping');
-    cv.remove(); geo.dispose();
-    [front, back].forEach(m => { m.material.map.dispose(); m.material.dispose(); });
-    renderer.dispose(); flip = null;
-  };
-  const step = now => {
-    const dt = Math.min(.032, (now - last) / 1000); last = now;
-    const f = flip; f.v += (-K * (f.a - f.target) - C * f.v) * dt; f.a += f.v * dt;
-    const lift = Math.sin(Math.min(Math.PI, Math.max(0, f.a)));
-    group.rotation.y = f.a; group.rotation.x = -lift * .1; group.position.z = lift * 80;
-    light.position.x = -400 + (f.a / Math.PI) * 800;        // la luz cruza la tarjeta al girar
-    renderer.render(scene, camera);
-    if (Math.abs(f.a - f.target) < .003 && Math.abs(f.v) < .03) return finish(f.target > 1);
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+  settings.face = to; saveSettings(); shownBalance = accBalance(to); chartDrawn = false;
+  if (reduceMotion()){ rollingNum = false; render(); return; }
+  cancelAnimationFrame(countRaf);
+  rollingNum = true; rollTarget = newTxt;
+  // Piel alrededor: brillo que cruza y textos con un fundido corto; los colores los funde el CSS
+  balCard.querySelector('.sheen').animate({transform:['translateX(-120%) skewX(-14deg)', 'translateX(320%) skewX(-14deg)'], opacity:[0, 1, 0]},
+    {duration:950, easing:'cubic-bezier(.32,.72,0,1)'});
+  [$('#accLabel'), $('#monthIn'), $('#monthOut'), $('#budgetBar small')].forEach(t =>
+    t.animate({opacity:[1, 0, 1], transform:['none', 'translateY(-4px)', 'none']}, {duration:460, easing:'ease-in-out'}));
+  const anims = rollNumber(el, oldTxt, newTxt);
+  setTimeout(() => { if (gen === rollGen) render(); }, 200);     // textos y colores nuevos a mitad del fundido
+  await Promise.all(anims.map(a => a.finished)).catch(() => {});
+  if (gen !== rollGen) return;                                   // otro cambio tomó el relevo
+  rollingNum = false; el.textContent = newTxt;
 }
-balCard.addEventListener('click', flipCard);
-balCard.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flipCard(); } });
+balCard.addEventListener('click', switchFace);
+balCard.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); switchFace(); } });
 
 // ── Saldo inicial: la primera vez con datos, pregunta cuánto hay en tarjeta y en efectivo ──
 function askOpening(){
@@ -1632,6 +1613,7 @@ function renderSettings(){
   settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
+  settingsPanel.querySelectorAll('[data-accb]').forEach(el => { const v = settings.accBudgets?.[el.dataset.accb]; el.value = v ? num2.format(v) : ''; });
   $('#catBudgets').innerHTML = CATS.map(c => `
     <label class="row"><span class="ico bub" style="--c:${c.color}">${c.emoji}</span><span>${c.name}</span>
       <input class="mini" data-cat="${c.id}" inputmode="decimal" placeholder="—" autocomplete="off"
@@ -1647,7 +1629,7 @@ function renderSettings(){
     : `<div class="row"><span class="ico bub" style="--c:#94A3B8">↻</span><span>Aún no tienes movimientos fijos</span></div>`;
 }
 formatAmountInput($('#budgetTotal'));
-settingsPanel.querySelectorAll('[data-acc]').forEach(formatAmountInput);
+settingsPanel.querySelectorAll('[data-acc], [data-accb]').forEach(formatAmountInput);
 // Ajustar saldo: se recalcula el saldo inicial para que la cuenta muestre lo escrito
 settingsPanel.addEventListener('change', e => {
   const a = e.target.dataset.acc; if (!a) return;
@@ -1660,6 +1642,7 @@ settingsPanel.addEventListener('input', e => {
   const el = e.target; if (!el.classList.contains('mini') || el.dataset.acc) return;
   const v = parseAmount(el.value), ok = v > 0 ? Math.round(v * 100) / 100 : null;
   if (el.id === 'budgetTotal') settings.budget = ok;
+  else if (el.dataset.accb){ settings.accBudgets = {...settings.accBudgets}; if (ok) settings.accBudgets[el.dataset.accb] = ok; else delete settings.accBudgets[el.dataset.accb]; }
   else if (ok) settings.catBudgets[el.dataset.cat] = ok; else delete settings.catBudgets[el.dataset.cat];
   saveSettings(); render();
 });
@@ -1690,7 +1673,7 @@ function updateBackupUI(){
     : `Última copia: ${days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} días`}${stale ? ' · te recomiendo hacer otra' : ''}.`;
 }
 async function exportBackup(){
-  const data = {app:'mis-cuentas', version:1, exportedAt:new Date().toISOString(), movs, settings:{budget:settings.budget, catBudgets:settings.catBudgets, opening:settings.opening}, recurring};
+  const data = {app:'mis-cuentas', version:1, exportedAt:new Date().toISOString(), movs, settings:{budget:settings.budget, catBudgets:settings.catBudgets, accBudgets:settings.accBudgets, opening:settings.opening}, recurring};
   const name = `mis-cuentas-${new Date().toLocaleDateString('sv-SE')}.json`;
   const blob = new Blob([JSON.stringify(data, null, 1)], {type:'application/json'});
   const file = new File([blob], name, {type:'application/json'});
@@ -1751,6 +1734,7 @@ $('#importFile').addEventListener('change', async e => {
     save(); saveSettings(); saveRec(); firstRender = true; chartDrawn = false; render(); renderSettings(); };
   apply({movs:clean, recurring:Array.isArray(d.recurring) ? d.recurring.map(cleanRec).filter(Boolean) : [],
          settings:{...settings, budget:okAmount(d.settings?.budget) ? d.settings.budget : null, catBudgets:cleanBudgets(d.settings?.catBudgets),
+                   accBudgets:Object.fromEntries(['card', 'cash'].filter(k => okAmount(d.settings?.accBudgets?.[k])).map(k => [k, d.settings.accBudgets[k]])),
                    opening:cleanOpening(d.settings?.opening) || settings.opening}});
   navigator.vibrate?.(12);
   toast(`Copia importada · ${movs.length} movimientos`, () => apply(prev));
