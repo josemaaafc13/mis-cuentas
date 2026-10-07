@@ -629,7 +629,7 @@ function render(tone, amount){
     for (const m of d.items){
       const c = catOf(m), enter = firstRender || m.id === justAdded;
       const delay = firstRender ? Math.min(i++, 10) * 40 : 0;
-      html += `<button class="mov${enter ? ' enter' : ''}" data-id="${m.id}" style="--c:${c.color}${delay ? `;animation-delay:${delay}ms` : ''}">
+      html += `<button class="mov${enter ? ' enter' : ''}" data-id="${esc(m.id)}" style="--c:${c.color}${delay ? `;animation-delay:${delay}ms` : ''}">
         <span class="ico bub">${c.emoji}</span>
         <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}${m.rec ? '<span class="rec" title="Fijo mensual">↻</span>' : ''}</small></span>
         <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
@@ -1314,8 +1314,8 @@ function renderSettings(){
   // Movimientos fijos
   $('#recList').innerHTML = recurring.length ? recurring.map(r => {
     const c = r.type === 'in' ? INCOME : (CATS.find(x => x.id === r.cat) || FALLBACK);
-    return `<div class="row" data-rec="${r.id}"><span class="ico bub" style="--c:${c.color}">${c.emoji}</span>
-      <span>${esc(r.note || c.name)}<small>${r.type === 'in' ? '+' : '−'}${eur.format(r.amount)} · día ${r.day}${r.active ? '' : ' · en pausa'}</small></span>
+    return `<div class="row" data-rec="${esc(r.id)}"><span class="ico bub" style="--c:${c.color}">${c.emoji}</span>
+      <span>${esc(r.note || c.name)}<small>${r.type === 'in' ? '+' : '−'}${eur.format(r.amount)} · día ${esc(r.day)}${r.active ? '' : ' · en pausa'}</small></span>
       <input type="checkbox" class="sw" ${r.active ? 'checked' : ''} aria-label="Activo">
       <button class="del" aria-label="Borrar fijo">✕</button></div>`; }).join('')
     : `<div class="row"><span class="ico bub" style="--c:#94A3B8">↻</span><span>Aún no tienes movimientos fijos</span></div>`;
@@ -1373,22 +1373,46 @@ async function exportBackup(){
   settings.lastBackup = new Date().toISOString(); saveSettings(); updateBackupUI();
   navigator.vibrate?.(12); toast('✓ Copia guardada');
 }
-const validMov = m => m && m.id != null && (m.type === 'in' || m.type === 'out') && typeof m.amount === 'number' && m.amount > 0 && !isNaN(new Date(m.date));
+// Un archivo de copia es externo: se reconstruye cada dato solo con campos conocidos y tipos válidos
+const okAmount = v => typeof v === 'number' && isFinite(v) && v > 0 && v < 1e9;
+const okType = t => t === 'in' || t === 'out';
+const okCat = c => CATS.some(k => k.id === c);
+const cleanNote = n => typeof n === 'string' ? n.slice(0, 40) : '';
+function cleanMov(m){
+  if (!m || !okType(m.type) || !okAmount(m.amount) || !Number.isFinite(+m.id) || isNaN(new Date(m.date))) return null;
+  const out = {id:+m.id, type:m.type, amount:Math.round(m.amount * 100) / 100, note:cleanNote(m.note), date:new Date(m.date).toISOString()};
+  if (m.type === 'out') out.cat = okCat(m.cat) ? m.cat : 'otros';
+  if (typeof m.rec === 'string' && /^r\d+$/.test(m.rec)) out.rec = m.rec;
+  return out;
+}
+function cleanRec(r){
+  if (!r || typeof r.id !== 'string' || !/^r\d+$/.test(r.id) || !okType(r.type) || !okAmount(r.amount)
+      || !Number.isInteger(r.day) || r.day < 1 || r.day > 31 || typeof r.lastRun !== 'string' || !/^\d{4}-\d{2}$/.test(r.lastRun)) return null;
+  const out = {id:r.id, type:r.type, amount:Math.round(r.amount * 100) / 100, note:cleanNote(r.note), day:r.day, lastRun:r.lastRun, active:r.active !== false};
+  if (r.type === 'out') out.cat = okCat(r.cat) ? r.cat : 'otros';
+  return out;
+}
+function cleanBudgets(b){
+  const out = {};
+  if (b && typeof b === 'object') for (const c of CATS) if (okAmount(b[c.id])) out[c.id] = b[c.id];
+  return out;
+}
 $('#exportBtn').addEventListener('click', exportBackup);
 $('#importBtn').addEventListener('click', () => $('#importFile').click());
 $('#importFile').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   let d;
   try { d = JSON.parse(await f.text()); } catch { d = null; }
-  if (!d || d.app !== 'mis-cuentas' || !Array.isArray(d.movs) || !d.movs.every(validMov)){
+  const clean = d && d.app === 'mis-cuentas' && Array.isArray(d.movs) ? d.movs.map(cleanMov) : null;
+  if (!clean || clean.some(m => !m)){
     toast('Ese archivo no es una copia de Mis Cuentas'); return;
   }
   // Sin diálogo de confirmación: se importa y se puede deshacer
   const prev = {movs, settings:{...settings, catBudgets:{...settings.catBudgets}}, recurring};
   const apply = st => { movs = st.movs; settings = st.settings; recurring = st.recurring;
     save(); saveSettings(); saveRec(); firstRender = true; chartDrawn = false; render(); renderSettings(); };
-  apply({movs:d.movs, recurring:Array.isArray(d.recurring) ? d.recurring : [],
-         settings:{...settings, budget:d.settings?.budget ?? null, catBudgets:d.settings?.catBudgets || {}}});
+  apply({movs:clean, recurring:Array.isArray(d.recurring) ? d.recurring.map(cleanRec).filter(Boolean) : [],
+         settings:{...settings, budget:okAmount(d.settings?.budget) ? d.settings.budget : null, catBudgets:cleanBudgets(d.settings?.catBudgets)}});
   navigator.vibrate?.(12);
   toast(`Copia importada · ${movs.length} movimientos`, () => apply(prev));
 });
