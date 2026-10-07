@@ -617,7 +617,8 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <h4 class="grp-t">Pagos de Apple Pay</h4>
     <div class="grp">
       <button class="row" id="payGuide"><span class="ico bub" style="--c:#5E5CE6">💡</span><span>Cómo configurarlo</span><i>›</i></button>
-      <button class="row" id="payImport"><span class="ico bub" style="--c:#0EA5E9">📲</span><span>Importar pagos</span><i>›</i></button>
+      <button class="row" id="payImport"><span class="ico bub" style="--c:#0EA5E9">📲</span><span>Importar pagos (archivo)</span><i>›</i></button>
+      <button class="row" id="payPaste"><span class="ico bub" style="--c:#FF9F0A">📝</span><span>Pegar pagos (desde Notas)</span><i>›</i></button>
     </div>
     <input type="file" id="payFile" accept=".txt,.json,text/plain,application/json" hidden>
     <p class="grp-note" id="payNote">Con un atajo del iPhone, cada pago con Apple Pay se guarda y aquí lo añades con dos toques.</p>
@@ -1827,22 +1828,37 @@ $('#payGuide').addEventListener('click', () => fromSettings(() => {
       <li>Abre la app <b>Atajos</b> y toca la pestaña <b>Automatización</b> (abajo).</li>
       <li>Toca <b>+</b> (o <b>Nueva automatización</b>) y busca <b>Transacción</b> (icono de Wallet). Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b> y toca <b>Siguiente</b> → <b>Nueva automatización en blanco</b>.</li>
       <li>Toca <b>Añadir acción</b>, busca <b>Texto</b> y añádelo. Toca dentro del recuadro: encima del teclado sale <b>Entrada del atajo</b>; tócalo y luego toca la variable que aparece para elegir <b>Importe</b>. Escribe un <b>;</b> y repite eligiendo <b>Comercio</b>. Debe quedar: <span class="code" style="display:inline-block;margin:4px 0;padding:4px 8px">Importe;Comercio</span></li>
-      <li>Añade la acción <b>Añadir al archivo de texto</b>. En el nombre del archivo escribe <b>mis-cuentas-pagos</b> y activa <b>Crear nueva línea</b>.</li>
+      <li>Añade la acción <b>Añadir al archivo de texto</b>. Se ve como una frase: «Añadir <b>Texto</b> a <b>…</b>». La primera palabra azul ya debe ser <b>Texto</b>. Toca la segunda parte azul y escribe <b>mis-cuentas-pagos.txt</b>. Toca la flechita <b>›</b> de la acción para ver más opciones y activa <b>Crear nueva línea</b>.
+        <br><small style="color:var(--muted)">¿No te deja o te pide elegir un archivo que no existe? Usa el plan B: en vez de esta acción añade <b>Añadir a la nota</b>, elige o crea la nota <b>Mis Cuentas pagos</b>, y luego aquí usa ⚙ → <b>Pegar pagos</b>.</small></li>
       <li>(Opcional) Añade <b>Mostrar notificación</b> y escribe «💳 Pago guardado para Mis Cuentas».</li>
       <li>Toca <b>OK</b>. Paga algo con Apple Pay y luego, en esta app, ⚙ → <b>Importar pagos</b> → Atajos → <b>mis-cuentas-pagos.txt</b>.</li>
     </ol>
     <p class="grp-note" style="margin:6px 2px 0">Si no aparece «Transacción»: necesitas iOS 17 o posterior y una tarjeta añadida a Wallet para Apple Pay. Solo registra pagos con Apple Pay; los ingresos y Bizum no pasan por Wallet.</p>`, '', '#5E5CE6');
 }));
 $('#payImport').addEventListener('click', () => $('#payFile').click());
-$('#payFile').addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+// Lee pagos de un texto (archivo o nota pegada) y abre la bandeja solo con los nuevos
+function reviewPays(text, fromPanel){
   const seen = new Set(settings.payImported || []);
-  // Sin duplicados: ni los ya importados ni los repetidos dentro del mismo archivo
-  const fresh = parsePayLines(await f.text()).filter(p => { const k = payKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
+  // Sin duplicados: ni los ya importados ni los repetidos dentro del mismo texto
+  const fresh = parsePayLines(text).filter(p => { const k = payKey(p); if (seen.has(k)) return false; seen.add(k); return true; });
   settings.lastPayImport = new Date().toISOString(); saveSettings(); updatePayNote();
   if (!fresh.length){ toast('No hay pagos nuevos'); return; }
-  fromSettings(() => openPayTray(fresh));
+  fromPanel ? fromSettings(() => openPayTray(fresh)) : openPayTray(fresh);
+}
+$('#payFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  reviewPays(await f.text(), true);
 });
+// Plan B: el atajo añade cada pago a una nota; aquí se pega la nota entera (lo ya importado no se repite)
+$('#payPaste').addEventListener('click', () => fromSettings(() => {
+  openSheet(`
+    <div class="sheet-head"><h3>Pegar pagos</h3><button class="close" data-close>✕</button></div>
+    <p class="grp-note" style="margin:0 2px 8px">Abre la nota <b>Mis Cuentas pagos</b> en Notas, mantén pulsado → <b>Seleccionar todo</b> → <b>Copiar</b>, y pégala aquí. Puedes pegar la nota entera cada vez: lo que ya añadiste no se repite.</p>
+    <textarea class="field" id="payText" rows="6" placeholder="12,50 €;Mercadona" style="resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:15px"></textarea>
+    <button class="primary" id="payGo">Revisar pagos</button>`, '', '#FF9F0A');
+  setTimeout(() => $('#payText').focus(), 350);
+  $('#payGo').addEventListener('click', () => reviewPays($('#payText').value, false));
+}));
 function markPays(list){
   settings.payImported = [...(settings.payImported || []), ...list.map(payKey)].slice(-1000); saveSettings();
 }
