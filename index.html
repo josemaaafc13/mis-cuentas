@@ -1766,7 +1766,6 @@ $('#importFile').addEventListener('change', async e => {
 });
 
 // ── Pagos de Apple Pay: un atajo de iOS guarda cada pago en un archivo y aquí se importan ──
-const PAY_LINE = '{"amount":"[Importe]","merchant":"[Comercio]","card":"[Tarjeta]","date":"[Fecha formateada]"}';
 // Importes en cualquier formato: "12,50 €", "€12.50", "1.234,56 €", "40.00"
 function parseMoney(v){
   if (typeof v === 'number') return Math.abs(v);
@@ -1791,19 +1790,25 @@ const GUESS = [
   ['regalos', /regalo|floristeria|juguet/],
 ];
 const guessCat = name => (GUESS.find(([, re]) => re.test(norm(name))) || ['comida'])[0];
-const payKey = p => `${p.date.slice(0, 16)}|${p.amount.toFixed(2)}|${p.merchant.toLowerCase()}`;
+// Sin fecha en la línea, se identifica por su número de línea: el atajo solo añade al final del archivo
+const payKey = p => `${p.dated ? p.date.slice(0, 16) : 'L' + p.line}|${p.amount.toFixed(2)}|${p.merchant.toLowerCase()}`;
 function parsePayLines(text){
   const out = [];
-  for (const line of String(text).split(/\r?\n/)){
-    const l = line.trim(); if (!l) continue;
-    let o; try { o = JSON.parse(l); } catch { continue; }                 // líneas rotas: se ignoran
-    if (!o || typeof o !== 'object') continue;
+  String(text).split(/\r?\n/).forEach((line, n) => {
+    const l = line.trim(); if (!l) return;
+    // Formato simple del atajo: "importe;comercio" (fecha opcional). También acepta la línea JSON antigua
+    let o; try { o = JSON.parse(l); } catch {
+      const [amount, merchant, date] = l.split(';').map(x => x.trim());
+      if (!amount || !/\d/.test(amount)) return;                           // líneas rotas: se ignoran
+      o = {amount, merchant, date};
+    }
+    if (!o || typeof o !== 'object') return;
     const amount = Math.round(parseMoney(o.amount) * 100) / 100;
-    if (!(amount > 0) || amount >= 1e7) continue;
-    const d = new Date(o.date), date = (isNaN(d) ? new Date() : d).toISOString();
+    if (!(amount > 0) || amount >= 1e7) return;
+    const d = new Date(o.date), date = (o.date && !isNaN(d) ? d : new Date()).toISOString();   // sin fecha: la de la importación
     const merchant = (typeof o.merchant === 'string' && o.merchant.trim() ? o.merchant.trim() : 'Apple Pay').slice(0, 40);
-    out.push({amount, merchant, date, cat: guessCat(merchant)});
-  }
+    out.push({amount, merchant, date, dated: !!(o.date && !isNaN(d)), line: n, cat: guessCat(merchant)});
+  });
   return out;
 }
 function updatePayNote(){
@@ -1819,19 +1824,14 @@ $('#payGuide').addEventListener('click', () => fromSettings(() => {
     <div class="sheet-head"><h3>Pagos de Apple Pay</h3><button class="close" data-close>✕</button></div>
     <p class="grp-note" style="margin:0 2px">Una vez configurado, cada vez que pagues con Apple Pay el iPhone guarda el pago y te avisa. Luego aquí, en ⚙ → Importar pagos, los añades.</p>
     <ol class="steps">
-      <li>Abre <b>Atajos</b> → pestaña <b>Automatización</b> → <b>+</b> → <b>Transacción</b>. Elige tus tarjetas y marca <b>Ejecutar inmediatamente</b>.</li>
-      <li>Añade <b>Formatear fecha</b>: fecha <b>Fecha actual</b>, formato <b>ISO 8601</b>.</li>
-      <li>Añade <b>Texto</b> y pega esto. Después cambia cada [ ] por su variable (Importe, Comercio, Tarjeta y Fecha formateada):
-        <div class="code" id="payCode">${esc(PAY_LINE)}</div>
-        <button class="ghost" id="payCopy" style="margin-top:4px;padding:10px">Copiar texto</button></li>
-      <li>Añade <b>Añadir al archivo de texto</b>: archivo <b>Atajos/mis-cuentas-pagos.txt</b>, con <b>Nueva línea</b> activado.</li>
-      <li>Añade <b>Mostrar notificación</b>: «💳 [Importe] en [Comercio] · guardado para Mis Cuentas».</li>
+      <li>Abre la app <b>Atajos</b> y toca la pestaña <b>Automatización</b> (abajo).</li>
+      <li>Toca <b>+</b> (o <b>Nueva automatización</b>) y busca <b>Transacción</b> (icono de Wallet). Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b> y toca <b>Siguiente</b> → <b>Nueva automatización en blanco</b>.</li>
+      <li>Toca <b>Añadir acción</b>, busca <b>Texto</b> y añádelo. Toca dentro del recuadro: encima del teclado sale <b>Entrada del atajo</b>; tócalo y luego toca la variable que aparece para elegir <b>Importe</b>. Escribe un <b>;</b> y repite eligiendo <b>Comercio</b>. Debe quedar: <span class="code" style="display:inline-block;margin:4px 0;padding:4px 8px">Importe;Comercio</span></li>
+      <li>Añade la acción <b>Añadir al archivo de texto</b>. En el nombre del archivo escribe <b>mis-cuentas-pagos</b> y activa <b>Crear nueva línea</b>.</li>
+      <li>(Opcional) Añade <b>Mostrar notificación</b> y escribe «💳 Pago guardado para Mis Cuentas».</li>
+      <li>Toca <b>OK</b>. Paga algo con Apple Pay y luego, en esta app, ⚙ → <b>Importar pagos</b> → Atajos → <b>mis-cuentas-pagos.txt</b>.</li>
     </ol>
-    <p class="grp-note" style="margin:6px 2px 0">Solo funciona con pagos de Apple Pay (iOS 17 o posterior). Los ingresos y Bizum no pasan por Wallet.</p>`, '', '#5E5CE6');
-  $('#payCopy').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(PAY_LINE); toast('✓ Texto copiado'); }
-    catch { const r = document.createRange(); r.selectNodeContents($('#payCode')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Selecciona y copia el texto'); }
-  });
+    <p class="grp-note" style="margin:6px 2px 0">Si no aparece «Transacción»: necesitas iOS 17 o posterior y una tarjeta añadida a Wallet para Apple Pay. Solo registra pagos con Apple Pay; los ingresos y Bizum no pasan por Wallet.</p>`, '', '#5E5CE6');
 }));
 $('#payImport').addEventListener('click', () => $('#payFile').click());
 $('#payFile').addEventListener('change', async e => {
