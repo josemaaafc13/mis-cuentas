@@ -41,7 +41,7 @@
 html,body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--text);
   font:100%/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 body{min-height:100dvh;overscroll-behavior-y:none;background:var(--bg)}
-@media (prefers-color-scheme:dark){.card,.fab,.primary,.sheet[data-type] .primary,.opt,.toast{box-shadow:0 10px 30px rgba(0,0,0,.5)!important}}
+@media (prefers-color-scheme:dark){.card,.fab,.primary,.sheet[data-type] .primary,.toast{box-shadow:0 10px 30px rgba(0,0,0,.5)!important}}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px)}
 
@@ -134,15 +134,18 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .list{display:flex;flex-direction:column;gap:8px}
 /* Cada movimiento es su propia burbuja de cristal; al soltar rebota con muelle */
 .mov{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:left;position:relative;border-radius:22px;
-  background:rgba(255,255,255,.32);backdrop-filter:blur(18px) saturate(190%);-webkit-backdrop-filter:blur(18px) saturate(190%);
+  --mov-bg:rgba(255,255,255,.32);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--c) 16%,var(--mov-bg)),var(--mov-bg) 55%);
+  backdrop-filter:blur(18px) saturate(190%);-webkit-backdrop-filter:blur(18px) saturate(190%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(255,255,255,.4),0 4px 16px rgba(14,100,170,.08);
   transition:transform .45s var(--spring)}
 .mov.enter{animation:rise .55s var(--ease-ios) backwards}
 .mov:active{transform:scale(.97);transition-duration:.1s}
 @media (prefers-color-scheme:dark){
-  .mov{background:rgba(14,30,44,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.06),0 4px 16px rgba(0,0,0,.3)}
+  .mov{--mov-bg:rgba(14,30,44,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.06),0 4px 16px rgba(0,0,0,.3)}
 }
 .ico{flex:none;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:1.25rem}
+.mov .ico.bub{width:42px;height:42px;font-size:1.25rem}
 .mov .txt{flex:1;min-width:0}
 .mov .txt b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mov .txt small{color:var(--muted);font-size:.8rem}
@@ -169,18 +172,27 @@ body.menu-open .scrim,body.sheet-open .scrim{opacity:1;pointer-events:auto}
 body.sheet-open .scrim{background:color-mix(in srgb,var(--scrim) 55%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .menu{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 100px);z-index:25;transform:translateX(-50%);
   display:flex;gap:12px;pointer-events:none}
-.opt{display:flex;flex-direction:column;align-items:center;gap:8px;width:118px;padding:16px 10px;border-radius:24px;
-  background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  box-shadow:var(--shadow-l);font-weight:700;
+.opt{display:flex;flex-direction:column;align-items:center;gap:5px;width:96px;
   opacity:0;transform:translateY(40px) scale(.6);transition:transform .45s var(--spring),opacity .25s ease}
-.opt .ico{width:48px;height:48px;border-radius:16px;font-size:1.4rem;color:#fff}
-.opt.in .ico{background:linear-gradient(145deg,#4ADE80,var(--green))}
-.opt.out .ico{background:linear-gradient(145deg,#FF7A70,var(--red))}
+.opt .ico{width:68px;height:68px;font-size:1.7rem;font-weight:800}
+.opt.in{--c:var(--green)} .opt.out{--c:var(--red)}
+.opt.in .ico{color:var(--green-text)} .opt.out .ico{color:var(--red-text)}
+.opt .pill{font-size:.8rem;padding:3px 11px}
 .opt.in{transform-origin:100% 100%} .opt.out{transform-origin:0 100%}
 body.menu-open .menu{pointer-events:auto}
 body.menu-open .opt{opacity:1;transform:none}
 body.menu-open .opt.out{transition-delay:.05s}
 .opt:active{transform:scale(.95)!important}
+
+/* Burbuja: el mismo lenguaje en todo (categorías, movimientos, botones del +, hojas, gráfica).
+   Círculo tintado del color de su categoría (--c), aro fino de ese color y brillo suave debajo. */
+.bub{border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--c) 24%,rgba(255,255,255,.55));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 1.5px color-mix(in srgb,var(--c) 50%,transparent),0 6px 18px color-mix(in srgb,var(--c) 30%,transparent)}
+@media (prefers-color-scheme:dark){.bub{background:color-mix(in srgb,var(--c) 30%,rgba(14,30,44,.6));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent),0 6px 18px color-mix(in srgb,var(--c) 25%,transparent)}}
+.pill{padding:2px 9px;border-radius:10px;font-size:.7rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 
 /* Racimo de categorías: brotan del botón + como burbujas (posición y animación en JS con WAAPI) */
 .cluster{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 54px);z-index:26;width:0;height:0;pointer-events:none}
@@ -188,11 +200,7 @@ body.cluster-open .cluster{pointer-events:auto}
 .cb{position:absolute;left:-50px;top:-27px;width:100px;display:flex;flex-direction:column;align-items:center;gap:3px;
   opacity:0;will-change:transform,opacity;pointer-events:none}
 .cb>*{pointer-events:auto}
-.cb .ico{width:54px;height:54px;border-radius:50%;font-size:1.5rem;
-  background:color-mix(in srgb,var(--c) 22%,var(--surface));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 1.5px color-mix(in srgb,var(--c) 45%,transparent),0 8px 20px color-mix(in srgb,var(--c) 30%,transparent)}
-.cb span:last-child{padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
-  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.cb .ico{width:54px;height:54px;font-size:1.5rem}
 body.cluster-open .scrim{opacity:1;pointer-events:auto}
 body.cluster-open .fab svg{transform:rotate(135deg)}
 
@@ -200,7 +208,7 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;max-height:92dvh;overflow:auto;
   border-radius:32px 32px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom) + 20px);
   /* Liquid glass: cristal translúcido que tiñe y desenfoca lo de detrás, con el borde iluminado y un reflejo arriba */
-  background:linear-gradient(180deg,var(--lg-top),var(--lg-bottom));
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c,transparent) 16%,var(--lg-top)),var(--lg-bottom) 70%);
   backdrop-filter:blur(30px) saturate(190%) brightness(1.04);-webkit-backdrop-filter:blur(30px) saturate(190%) brightness(1.04);
   box-shadow:inset 0 1px 0 var(--lg-edge),inset 0 0 0 1px var(--lg-rim),0 -18px 50px var(--lg-shadow);
   transform:translateY(105%);transition:transform .5s var(--ease-ios)}
@@ -224,9 +232,9 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
   background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim);color:var(--text);font:inherit;font-size:16px;outline:0;transition:border-color .2s,background .2s}
 .field::placeholder{color:var(--muted)}
 .field:focus{border-color:color-mix(in srgb,var(--sky-400) 70%,transparent);background:color-mix(in srgb,var(--lg-fill) 100%,rgba(255,255,255,.15))}
-.picked{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;margin:4px auto 0;padding:6px 14px 6px 6px;
-  border-radius:999px;background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim),0 4px 14px var(--lg-shadow);font-weight:700;font-size:.95rem}
-.picked .ico{width:30px;height:30px;border-radius:50%;font-size:1rem}
+.picked{display:flex;flex-direction:column;align-items:center;gap:6px;margin:2px auto 0}
+.picked .ico{width:64px;height:64px;font-size:1.8rem}
+.picked .pill{font-size:.85rem;padding:3px 12px}
 .primary{width:100%;margin-top:14px;padding:16px;border-radius:18px;font-weight:700;font-size:1.05rem;color:#fff;
   background:linear-gradient(145deg,#0275B5,var(--sky-700));box-shadow:0 8px 20px rgba(14,165,233,.35);transition:transform .12s ease-out,opacity .2s;
   position:relative;overflow:hidden}
@@ -238,7 +246,7 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
   background:color-mix(in srgb,var(--red) 14%,transparent);box-shadow:inset 0 1px 0 var(--lg-fill-rim),inset 0 0 0 1px color-mix(in srgb,var(--red) 22%,transparent)}
 .danger:active{transform:scale(.97)}
 .detail{text-align:center;padding:6px 0 4px}
-.detail .ico{width:64px;height:64px;border-radius:20px;font-size:2rem;margin:4px auto 10px}
+.detail .ico{width:76px;height:76px;font-size:2.1rem;margin:4px auto 12px}
 .detail .amt{font-size:2.2rem;font-weight:800;letter-spacing:-.03em}
 .detail p{margin:4px 0;color:var(--muted)}
 
@@ -280,13 +288,18 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   background:var(--lg-fill);box-shadow:inset 0 0 0 1px var(--lg-fill-rim)}
 .period button:disabled{opacity:.3}
 @media (prefers-color-scheme:dark){.period button{color:var(--sky-300)}}
-.donut-wrap{position:relative;width:min(62vw,230px);aspect-ratio:1;margin:6px auto 10px}
-#donut{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
-#donut circle{fill:none;stroke-width:22;stroke-linecap:butt}
-#donut .track{stroke:rgba(120,150,180,.15)}
-.donut-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
-.donut-c b{font-size:1.6rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.donut-c small{color:var(--muted);font-weight:600;font-size:.8rem}
+/* Gráfica de burbujas: una por categoría, área proporcional al gasto, empaquetadas como un racimo */
+.bub-info{text-align:center;margin:8px 0 2px;min-height:52px}
+.bub-info b{display:block;font-size:1.7rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bub-info small{color:var(--muted);font-weight:600;font-size:.82rem}
+.bubbles{position:relative;height:250px;margin:4px 0 14px}
+.bubbles .bub{position:absolute;left:0;top:0;flex-direction:column;gap:0;line-height:1.1;text-align:center;
+  transition:transform .45s var(--spring),box-shadow .3s}
+.bubbles .bub em{font-style:normal}
+.bubbles .bub small{font-size:.68rem;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.bubbles.focus .bub:not(.sel){opacity:.45}
+.bubbles .bub.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 3px color-mix(in srgb,var(--c) 70%,transparent),0 10px 26px color-mix(in srgb,var(--c) 40%,transparent)}
+.bubbles .bub{transition:opacity .3s,box-shadow .3s}
 .cat-list{display:flex;flex-direction:column;gap:8px}
 .cat-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:4px 12px;padding:10px 12px;border-radius:18px;
   background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim)}
@@ -320,7 +333,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   .bg i{animation:none!important}
 }
 @media (prefers-reduced-transparency:reduce){
-  .opt,.toast,.mov,.cb span:last-child,.sheet,.zoom{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+  .opt,.toast,.mov,.pill,.sheet,.zoom{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
   .sheet::before{display:none}
   .bg{display:none} body{background:linear-gradient(180deg,var(--sky-100),var(--bg) 60%)}
 }
@@ -377,8 +390,8 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 <div class="scrim" id="scrim"></div>
 
 <nav class="menu" aria-label="Añadir">
-  <button class="opt in" data-open="in"><span class="ico">＋</span>Ingreso</button>
-  <button class="opt out" data-open="out"><span class="ico">－</span>Gasto</button>
+  <button class="opt in" data-open="in"><span class="ico bub">＋</span><span class="pill">Ingreso</span></button>
+  <button class="opt out" data-open="out"><span class="ico bub">－</span><span class="pill">Gasto</span></button>
 </nav>
 <div class="cluster" id="cluster" aria-label="Categorías de gasto"></div>
 <button class="fab" id="fab" aria-label="Añadir movimiento">
@@ -398,8 +411,8 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
       <button data-span="1" class="on">Mes</button><button data-span="3">3 meses</button><button data-span="6">6 meses</button><button data-span="12">Año</button>
     </div>
     <div class="period"><button id="prevP" aria-label="Periodo anterior">‹</button><b id="periodLbl"></b><button id="nextP" aria-label="Periodo siguiente">›</button></div>
-    <div class="donut-wrap"><svg id="donut" viewBox="0 0 200 200" role="img"></svg>
-      <div class="donut-c"><b id="donutTotal">0 €</b><small>gastado</small></div></div>
+    <div class="bub-info" aria-live="polite"><b id="donutTotal">0 €</b><small id="bubSub">gastado</small></div>
+    <div class="bubbles" id="bubbles" role="img" aria-label="Burbujas de gasto por categoría"></div>
     <div class="cat-list" id="catList"></div>
   </div>
 </section>
@@ -489,8 +502,8 @@ function render(tone, amount){
     for (const m of d.items){
       const c = catOf(m), enter = firstRender || m.id === justAdded;
       const delay = firstRender ? Math.min(i++, 10) * 40 : 0;
-      html += `<button class="mov${enter ? ' enter' : ''}" data-id="${m.id}"${delay ? ` style="animation-delay:${delay}ms"` : ''}>
-        <span class="ico" style="${tint(c.color)}">${c.emoji}</span>
+      html += `<button class="mov${enter ? ' enter' : ''}" data-id="${m.id}" style="--c:${c.color}${delay ? `;animation-delay:${delay}ms` : ''}">
+        <span class="ico bub">${c.emoji}</span>
         <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}</small></span>
         <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
     }
@@ -619,7 +632,7 @@ const cluster = $('#cluster');
 const bubbles = CATS.map(c => {
   const el = document.createElement('button');
   el.className = 'cb'; el.dataset.cat = c.id; el.style.setProperty('--c', c.color);
-  el.innerHTML = `<span class="ico">${c.emoji}</span><span>${c.name}</span>`;
+  el.innerHTML = `<span class="ico bub">${c.emoji}</span><span class="pill">${c.name}</span>`;
   cluster.appendChild(el);
   return {el, x:0, y:0};
 });
@@ -728,9 +741,10 @@ cluster.addEventListener('click', e => {
 
 // Hojas inferiores
 const sheet = $('#sheet');
-function openSheet(html, type){
+function openSheet(html, type, color){
   $('#sheetBody').innerHTML = html;
   sheet.dataset.type = type || '';
+  sheet.style.setProperty('--c', color || 'transparent');   // el cristal se tiñe del color de la categoría
   body.classList.remove('menu-open');
   body.classList.add('sheet-open');
   sheet.style.transform = '';
@@ -747,10 +761,27 @@ function openForm(type, preselectedCat){
   const isIn = type === 'in', c = isIn ? INCOME : (CATS.find(x => x.id === preselectedCat) || CATS[0]);
   openSheet(`
     <div class="sheet-head"><h3>${isIn ? 'Nuevo ingreso' : 'Nuevo gasto'}</h3><button class="close" data-close>✕</button></div>
-    ${isIn ? '' : `<div class="picked"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>${c.name}</div>`}
+    <div class="picked" style="--c:${c.color}"><span class="ico bub">${c.emoji}</span><span class="pill">${c.name}</span></div>
     <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"><span class="cur">€</span></label>
     <input class="field" id="note" maxlength="40" placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
-    <button class="primary" id="saveBtn">${isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type);
+    <button class="primary" id="saveBtn">${isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type, c.color);
+
+  // Separador de miles mientras se escribe: 1234,5 → 1.234,5 (el cursor se queda donde estaba)
+  const amt = $('#amount');
+  amt.addEventListener('input', e => {
+    let v = amt.value; const caret = amt.selectionStart ?? v.length;
+    // Un punto recién tecleado se toma como coma decimal; los demás puntos son de miles y se rehacen
+    if (e.data === '.') v = v.slice(0, caret - 1) + ',' + v.slice(caret);
+    const digitsBefore = v.slice(0, caret).replace(/[^\d,]/g, '').length;
+    let [int = '', dec] = v.replace(/\./g, '').replace(/[^\d,]/g, '').split(',');
+    int = int.replace(/^0+(?=\d)/, '').slice(0, 9);
+    let out = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    if (dec !== undefined) out += ',' + dec.slice(0, 2);
+    amt.value = out;
+    let pos = 0, seen = 0;                                        // recoloca el cursor tras el mismo dígito
+    while (pos < out.length && seen < digitsBefore){ if (/[\d,]/.test(out[pos])) seen++; pos++; }
+    amt.setSelectionRange(pos, pos);
+  });
 
   // Detrás de la hoja dejamos a la vista la tarjeta del saldo, para ver luego cómo cambian los números
   if (scrollY > 0) scrollTo({top:0, behavior: reduceMotion() ? 'auto' : 'smooth'});
@@ -780,11 +811,11 @@ $('#movs').addEventListener('click', e => {
   const c = catOf(m);
   openSheet(`
     <div class="sheet-head"><h3>Detalle</h3><button class="close" data-close>✕</button></div>
-    <div class="detail"><div class="ico" style="${tint(c.color)}">${c.emoji}</div>
+    <div class="detail"><div class="ico bub" style="--c:${c.color}">${c.emoji}</div>
       <div class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</div>
       <p><b>${esc(m.note || c.name)}</b></p>
       <p>${m.type === 'in' ? 'Ingreso' : c.name} · ${new Date(m.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</p></div>
-    <button class="danger" id="del">Eliminar movimiento</button>`);
+    <button class="danger" id="del">Eliminar movimiento</button>`, '', c.color);
   $('#del').addEventListener('click', () => {
     closeSheet();
     lastDeleted = {m, idx:movs.indexOf(m)};
@@ -900,6 +931,62 @@ function zoomRange(){
   return {start, stop, label};
 }
 
+// Empaqueta círculos: el mayor en el centro y cada siguiente en el hueco libre más cercano al centro,
+// tocando a alguno ya colocado. Luego se escala todo para que quepa en la caja.
+function packBubbles(vals, W, H){
+  const gap = 6, max = Math.max(...vals);
+  const rs = vals.map(v => Math.max(.3, Math.sqrt(v / max)) * 100);   // área ∝ gasto (con un mínimo legible)
+  const pts = [];
+  rs.forEach((r, i) => {
+    if (!i){ pts.push({x:0, y:0, r}); return; }
+    let best = null;
+    for (const p of pts) for (let a = 0; a < 360; a += 8){
+      const t = a * Math.PI / 180, d = p.r + r + gap, x = p.x + d * Math.cos(t), y = p.y + d * Math.sin(t);
+      if (pts.some(q => Math.hypot(q.x - x, q.y - y) < q.r + r + gap - .01)) continue;
+      const score = Math.hypot(x / (W / H), y);                         // prefiere crecer a lo ancho
+      if (!best || score < best.score) best = {x, y, score};
+    }
+    pts.push({x:best.x, y:best.y, r});
+  });
+  const x0 = Math.min(...pts.map(p => p.x - p.r)), x1 = Math.max(...pts.map(p => p.x + p.r));
+  const y0 = Math.min(...pts.map(p => p.y - p.r)), y1 = Math.max(...pts.map(p => p.y + p.r));
+  const k = Math.min(W / (x1 - x0), H / (y1 - y0), 1.1);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return pts.map(p => ({x: W / 2 + (p.x - cx) * k, y: H / 2 + (p.y - cy) * k, r: p.r * k}));
+}
+let bubSel = null;
+function drawBubbles(rows, total, motion){
+  const box = $('#bubbles'); bubSel = null; box.classList.remove('focus');
+  if (!rows.length){ box.innerHTML = ''; box.style.height = '0px'; return; }
+  box.style.height = '';
+  const W = box.clientWidth || 320, H = box.clientHeight || 250;
+  const pos = packBubbles(rows.map(r => r[1]), W, H);
+  box.innerHTML = rows.map(([c, v], i) => {
+    const {x, y, r} = pos[i], big = r > 34;
+    return `<button class="bub" data-i="${i}" style="--c:${c.color};width:${2*r}px;height:${2*r}px;transform:translate(${x - r}px,${y - r}px)"
+      aria-label="${c.name}: ${eur.format(v)}"><em style="font-size:${Math.max(14, r * .55)}px">${c.emoji}</em>${big ? `<small>${eur0.format(v)}</small>` : ''}</button>`;
+  }).join('');
+  // Brotan del centro hacia fuera, las grandes primero, con muelle
+  if (motion) box.querySelectorAll('.bub').forEach((b, i) => {
+    const t = b.style.transform;
+    b.animate([{transform:`translate(${W/2 - pos[i].r}px,${H/2 - pos[i].r}px) scale(.2)`, opacity:0}, {transform:t, opacity:1}],
+      {duration:700, delay:120 + i * 55, easing:'cubic-bezier(.34,1.36,.64,1)', fill:'backwards'});
+  });
+  box.onclick = e => {
+    const b = e.target.closest('.bub');
+    box.querySelectorAll('.bub').forEach(x => x.classList.remove('sel'));
+    if (!b || bubSel === b.dataset.i){
+      bubSel = null; box.classList.remove('focus');
+      $('#donutTotal').textContent = eur0.format(total); $('#bubSub').textContent = 'gastado'; return;
+    }
+    bubSel = b.dataset.i; b.classList.add('sel'); box.classList.add('focus');
+    const [c, v] = rows[+bubSel];
+    navigator.vibrate?.(6);
+    $('#donutTotal').textContent = eur.format(v);
+    $('#bubSub').textContent = `${c.emoji} ${c.name} · ${Math.round(v / total * 100)} % del total`;
+  };
+}
+
 function renderZoom(animate){
   const {start, stop, label} = zoomRange();
   $('#periodLbl').textContent = label;
@@ -915,25 +1002,18 @@ function renderZoom(animate){
   const rows = [...by].sort((a, b) => b[1] - a[1]), total = rows.reduce((t, r) => t + r[1], 0);
   const motion = animate && !reduceMotion();
 
-  // Anillo: un arco por categoría, separados por un pequeño hueco
-  const R = 80, C = 2 * Math.PI * R, gap = rows.length > 1 ? 3 : 0, D = 1000;
-  let acc = 0;
-  $('#donut').innerHTML = `<circle class="track" cx="100" cy="100" r="${R}"/>` + rows.map(([c, v]) => {
-    const len = v / total * C, dash = Math.max(len - gap, .5), off = acc; acc += len;
-    return `<circle cx="100" cy="100" r="${R}" stroke="${c.color}" stroke-dasharray="${dash} ${C}" stroke-dashoffset="${-off}" data-d="${dash}" data-s="${off / C}" data-f="${len / C}"/>`;
-  }).join('');
-  if (motion) $('#donut').querySelectorAll('circle[data-d]').forEach(el =>       // se dibuja como un solo trazo continuo
-    el.animate({strokeDasharray:[`0 ${C}`, `${el.dataset.d} ${C}`]},
-      {duration: Math.max(60, el.dataset.f * D), delay: 120 + el.dataset.s * D, easing:'linear', fill:'backwards'}));
+  drawBubbles(rows, total, motion);
+  const D = 1000;
 
-  // Total en el centro, contando
+  // Total arriba, contando
   const tEl = $('#donutTotal'), t0 = performance.now();
-  const tick = now => { const p = motion ? Math.min(1, (now - t0) / (D + 150)) : 1;
+  $('#bubSub').textContent = 'gastado';
+  const tick = now => { const p = motion ? Math.min(1, (now - t0) / D) : 1;
     tEl.textContent = eur0.format(total * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 
   $('#catList').innerHTML = rows.length ? rows.map(([c, v]) => `
-    <div class="cat-row" style="--c:${c.color}"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>
+    <div class="cat-row" style="--c:${c.color}"><span class="ico bub">${c.emoji}</span>
       <b>${c.name}<small>${Math.round(v / total * 100)} %</small></b><span class="amt out">${eur.format(v)}</span>
       <div class="bar"><i style="transform:scaleX(${v / rows[0][1]})"></i></div></div>`).join('')
     : `<div class="cat-empty">No hay gastos en este periodo</div>`;
