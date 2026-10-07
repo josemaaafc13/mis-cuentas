@@ -24,12 +24,18 @@
   --shadow-l:0 10px 40px rgba(14,120,200,.25);
   --ease-ios:cubic-bezier(.32,.72,0,1);
   --spring:cubic-bezier(.34,1.36,.64,1);
+  --lg-top:rgba(255,255,255,.58); --lg-bottom:rgba(232,245,253,.40); --lg-edge:rgba(255,255,255,.9);
+  --lg-rim:rgba(255,255,255,.35); --lg-shadow:rgba(14,90,150,.18); --lg-sheen:rgba(255,255,255,.55);
+  --lg-fill:rgba(255,255,255,.42); --lg-fill-rim:rgba(255,255,255,.7);
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#06121D; --surface:#0E1E2C; --surface-2:#132738; --text:#EAF5FD; --muted:#8AA3B8; --line:rgba(255,255,255,.08);
   --glass:rgba(14,30,44,.7); --scrim:rgba(0,0,0,.5);
   --green-bg:rgba(34,197,94,.16); --red-bg:rgba(255,59,48,.16); --green-text:#4ADE80; --red-text:#FF6B61;
   --shadow-s:0 1px 2px rgba(0,0,0,.3); --shadow-l:0 10px 30px rgba(0,0,0,.5);
+  --lg-top:rgba(22,44,64,.62); --lg-bottom:rgba(8,22,36,.55); --lg-edge:rgba(255,255,255,.22);
+  --lg-rim:rgba(255,255,255,.08); --lg-shadow:rgba(0,0,0,.45); --lg-sheen:rgba(125,211,252,.14);
+  --lg-fill:rgba(255,255,255,.07); --lg-fill-rim:rgba(255,255,255,.12);
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--text);
@@ -100,7 +106,11 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 0 1px rgba(255,255,255,.45),0 8px 24px rgba(14,120,200,.14);
   animation:rise .7s var(--ease-ios) both}
 .card .label{font-size:.85rem;font-weight:700;color:#24506F}
-.balance{font-size:clamp(2.4rem,11vw,3.1rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin:4px 0 18px;font-variant-numeric:tabular-nums}
+.balance{font-size:clamp(2.4rem,11vw,3.1rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin:4px 0 18px;font-variant-numeric:tabular-nums;
+  transition:color .45s var(--ease-ios)}
+/* Mientras el saldo cuenta: verde si entra dinero, rojo si sale (sin transición al encenderse, para que se note al instante) */
+.balance.counting-in{color:var(--green-text);transition:none}
+.balance.counting-out{color:var(--red-text);transition:none}
 .stats{display:grid;grid-template-columns:1fr 1fr;position:relative;z-index:1;padding-top:14px;border-top:1px solid rgba(10,37,64,.1)}
 .stat{padding:0 4px}
 .stat+.stat{padding-left:16px;border-left:1px solid rgba(10,37,64,.1)}
@@ -155,6 +165,8 @@ body.menu-open .fab svg,body.sheet-open .fab svg{transform:rotate(135deg)}
 .scrim{position:fixed;inset:0;z-index:20;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   opacity:0;pointer-events:none;transition:opacity .3s ease}
 body.menu-open .scrim,body.sheet-open .scrim{opacity:1;pointer-events:auto}
+/* Con una hoja de cristal abierta el velo es más ligero: el fondo vivo y la tarjeta se ven a través */
+body.sheet-open .scrim{background:color-mix(in srgb,var(--scrim) 55%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .menu{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 100px);z-index:25;transform:translateX(-50%);
   display:flex;gap:12px;pointer-events:none}
 .opt{display:flex;flex-direction:column;align-items:center;gap:8px;width:118px;padding:16px 10px;border-radius:24px;
@@ -173,9 +185,10 @@ body.menu-open .opt.out{transition-delay:.05s}
 /* Racimo de categorías: brotan del botón + como burbujas (posición y animación en JS con WAAPI) */
 .cluster{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 54px);z-index:26;width:0;height:0;pointer-events:none}
 body.cluster-open .cluster{pointer-events:auto}
-.cb{position:absolute;left:-40px;top:-30px;width:80px;display:flex;flex-direction:column;align-items:center;gap:5px;
-  opacity:0;will-change:transform,opacity}
-.cb .ico{width:60px;height:60px;border-radius:50%;font-size:1.65rem;
+.cb{position:absolute;left:-50px;top:-27px;width:100px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  opacity:0;will-change:transform,opacity;pointer-events:none}
+.cb>*{pointer-events:auto}
+.cb .ico{width:54px;height:54px;border-radius:50%;font-size:1.5rem;
   background:color-mix(in srgb,var(--c) 22%,var(--surface));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 1.5px color-mix(in srgb,var(--c) 45%,transparent),0 8px 20px color-mix(in srgb,var(--c) 30%,transparent)}
 .cb span:last-child{padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
@@ -185,15 +198,22 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
 
 /* Hoja inferior */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;max-height:92dvh;overflow:auto;
-  background:var(--surface);border-radius:30px 30px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom) + 20px);
-  box-shadow:0 -10px 40px rgba(0,0,0,.18);transform:translateY(105%);transition:transform .5s var(--ease-ios)}
+  border-radius:32px 32px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom) + 20px);
+  /* Liquid glass: cristal translúcido que tiñe y desenfoca lo de detrás, con el borde iluminado y un reflejo arriba */
+  background:linear-gradient(180deg,var(--lg-top),var(--lg-bottom));
+  backdrop-filter:blur(30px) saturate(190%) brightness(1.04);-webkit-backdrop-filter:blur(30px) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 1px 0 var(--lg-edge),inset 0 0 0 1px var(--lg-rim),0 -18px 50px var(--lg-shadow);
+  transform:translateY(105%);transition:transform .5s var(--ease-ios)}
+.sheet::before{content:"";position:absolute;inset:0 0 auto;height:120px;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 90% at 30% 0%,var(--lg-sheen),transparent 70%)}
+.sheet>*{position:relative}
 .sheet.open{transform:translateY(0)}
 .sheet.dragging{transition:none}
 .grab{padding:6px 0 10px;touch-action:none;cursor:grab}
 .grab::before{content:"";display:block;width:38px;height:5px;border-radius:3px;margin:0 auto;background:rgba(120,140,160,.35)}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .sheet-head h3{margin:0;font-size:1.35rem;letter-spacing:-.02em}
-.close{width:32px;height:32px;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:1.1rem}
+.close{width:32px;height:32px;border-radius:50%;background:var(--lg-fill);box-shadow:inset 0 0 0 1px var(--lg-fill-rim);color:var(--muted);font-size:1.1rem}
 .amount-wrap{display:flex;align-items:center;justify-content:center;gap:4px;margin:14px 0 6px;font-weight:800;letter-spacing:-.035em}
 .amount-wrap input{width:100%;max-width:260px;text-align:center;border:0;outline:0;background:none;color:inherit;
   font:inherit;font-size:3rem;font-variant-numeric:tabular-nums}
@@ -201,17 +221,22 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
 .sheet[data-type=in] .amount-wrap{color:var(--green-text)} .sheet[data-type=out] .amount-wrap{color:var(--red-text)}
 .amount-wrap.shake{animation:shake .4s}
 .field{display:block;width:100%;margin:10px 0;padding:14px 16px;border-radius:16px;border:1px solid transparent;
-  background:var(--surface-2);color:var(--text);font:inherit;font-size:16px;outline:0;transition:border-color .2s,background .2s}
-.field:focus{border-color:var(--sky-400);background:var(--surface)}
+  background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim);color:var(--text);font:inherit;font-size:16px;outline:0;transition:border-color .2s,background .2s}
+.field::placeholder{color:var(--muted)}
+.field:focus{border-color:color-mix(in srgb,var(--sky-400) 70%,transparent);background:color-mix(in srgb,var(--lg-fill) 100%,rgba(255,255,255,.15))}
 .picked{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;margin:4px auto 0;padding:6px 14px 6px 6px;
-  border-radius:999px;background:var(--surface-2);font-weight:700;font-size:.95rem}
+  border-radius:999px;background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim),0 4px 14px var(--lg-shadow);font-weight:700;font-size:.95rem}
 .picked .ico{width:30px;height:30px;border-radius:50%;font-size:1rem}
 .primary{width:100%;margin-top:14px;padding:16px;border-radius:18px;font-weight:700;font-size:1.05rem;color:#fff;
-  background:linear-gradient(145deg,#0275B5,var(--sky-700));box-shadow:0 8px 20px rgba(14,165,233,.35);transition:transform .12s ease-out,opacity .2s}
+  background:linear-gradient(145deg,#0275B5,var(--sky-700));box-shadow:0 8px 20px rgba(14,165,233,.35);transition:transform .12s ease-out,opacity .2s;
+  position:relative;overflow:hidden}
+.primary::after{content:"";position:absolute;inset:0 0 50%;border-radius:inherit;background:linear-gradient(rgba(255,255,255,.28),transparent);pointer-events:none}
 .sheet[data-type=in] .primary{background:linear-gradient(145deg,#16A34A,#15803D);box-shadow:0 8px 20px rgba(34,197,94,.35)}
 .sheet[data-type=out] .primary{background:linear-gradient(145deg,#EF4444,#DC2626);box-shadow:0 8px 20px rgba(255,59,48,.3)}
 .primary:active{transform:scale(.97)}
-.danger{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:700;color:var(--red-text);background:var(--red-bg)}
+.danger{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:700;color:var(--red-text);
+  background:color-mix(in srgb,var(--red) 14%,transparent);box-shadow:inset 0 1px 0 var(--lg-fill-rim),inset 0 0 0 1px color-mix(in srgb,var(--red) 22%,transparent)}
+.danger:active{transform:scale(.97)}
 .detail{text-align:center;padding:6px 0 4px}
 .detail .ico{width:64px;height:64px;border-radius:20px;font-size:2rem;margin:4px auto 10px}
 .detail .amt{font-size:2.2rem;font-weight:800;letter-spacing:-.03em}
@@ -239,7 +264,8 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
   .bg i{animation:none!important}
 }
 @media (prefers-reduced-transparency:reduce){
-  .opt,.toast,.mov,.cb span:last-child{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+  .opt,.toast,.mov,.cb span:last-child,.sheet{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+  .sheet::before{display:none}
   .bg{display:none} body{background:linear-gradient(180deg,var(--sky-100),var(--bg) 60%)}
 }
 </style>
@@ -331,7 +357,7 @@ const eur0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maxi
 
 let movs = load();
 let shownBalance = 0, lastDeleted = null;
-let firstRender = true, justAdded = null, page = 0, chartDrawn = false;
+let firstRender = true, justAdded = null, page = 0, chartDrawn = false, goPage = () => {};
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function load(){
@@ -360,13 +386,13 @@ function dayLabel(iso){
   return d.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 }
 
-function render(){
+function render(tone){
   const total = movs.reduce((s,m) => s + (m.type === 'in' ? m.amount : -m.amount), 0);
   const now = new Date();
   const month = movs.filter(m => { const d = new Date(m.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
   $('#monthIn').textContent  = eur0.format(month.filter(m => m.type === 'in').reduce((s,m) => s + m.amount, 0));
   $('#monthOut').textContent = eur0.format(month.filter(m => m.type === 'out').reduce((s,m) => s + m.amount, 0));
-  countTo(total);
+  countTo(total, tone);
   $('#count').textContent = movs.length ? `${movs.length} en total` : '';
 
   drawChart(page === 1 && !chartDrawn);
@@ -466,16 +492,23 @@ function animateChart(){
     el.animate({opacity:[0, 1]}, {duration:500, delay:500 + (k % 2) * 120, easing:'ease-out', fill:'backwards'}));
 }
 
-// El saldo "cuenta" hasta el nuevo valor
-function countTo(target){
-  const from = shownBalance, t0 = performance.now(), dur = 700;
+// El saldo "cuenta" hasta el nuevo valor. Con tone ('in' | 'out') los números van en verde o rojo
+// mientras cambian y vuelven a su color al terminar.
+let countRaf = 0;
+function countTo(target, tone){
+  const el = $('#balance'), from = shownBalance, t0 = performance.now();
+  const dur = tone && !reduceMotion() ? 950 : tone ? 0 : 700;
+  cancelAnimationFrame(countRaf);
+  el.classList.remove('counting-in', 'counting-out');
+  if (tone) el.classList.add('counting-' + tone);
   const step = now => {
-    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    const p = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - p, 4);
     shownBalance = from + (target - from) * e;
-    $('#balance').textContent = eur.format(shownBalance);
-    if (p < 1) requestAnimationFrame(step);
+    el.textContent = eur.format(shownBalance);
+    if (p < 1) countRaf = requestAnimationFrame(step);
+    else if (tone) setTimeout(() => el.classList.remove('counting-' + tone), dur ? 250 : 600);
   };
-  requestAnimationFrame(step);
+  countRaf = requestAnimationFrame(step);
 }
 
 // Botón + y su menú
@@ -499,50 +532,73 @@ const bubbles = CATS.map(c => {
   return {el, x:0, y:0};
 });
 
-// Coloca las burbujas en anillos (semicírculo sobre el +) midiendo el ancho real de cada nombre,
-// de modo que ninguna caja "burbuja + nombre" se solape con otra, con el botón ni con el borde de la pantalla.
+// Abanico compacto: cada burbuja se describe con sus dos piezas reales (el círculo y la pastilla del nombre),
+// así una pastilla puede encajar bajo el hueco curvo de otro círculo. En cada anillo las burbujas se colocan
+// una pegada a la siguiente (el menor giro que no choca) y luego el grupo se centra arriba → forma de abanico.
+let layoutFor = 0;
 function layoutCluster(){
-  const vw = Math.min(innerWidth, 520), minT = 8 * Math.PI / 180, GAP = 8;
-  const boxW = bubbles.map(b => Math.max(60, b.el.lastElementChild.offsetWidth) + GAP);
-  // Altura real: desde el borde superior de la burbuja (-30) hasta el final del nombre
-  const lb = bubbles[0].el.lastElementChild, bottom = lb.offsetTop + lb.offsetHeight - 30;
-  const H = bottom + 30 + GAP, cyOff = (bottom - 30) / 2;
-  const fab = {x:0, cy:0, w:84, h:84};
-  const hit = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.cy - b.cy) < (a.h + b.h) / 2;
-  const configs = [[4,7],[5,6],[3,8],[4,4,3],[3,4,4],[3,5,3],[4,3,4],[2,4,5],[3,3,5]];
+  const vw = Math.min(innerWidth, 520);
+  if (vw === layoutFor) return;                                  // ya calculado para este ancho
+  layoutFor = vw;
+  const half = vw / 2 - 6, RC = 27, GAP = 3;
+  const minT = 4 * Math.PI / 180, maxT = Math.PI - minT, dT = .003;
+  const lbl = bubbles.map(b => ({w: b.el.lastElementChild.offsetWidth, h: b.el.lastElementChild.offsetHeight}));
+  const shape = (i, x, y) => ({x, y, w: lbl[i].w, h: lbl[i].h, ly: y + RC + 3 + lbl[i].h / 2});
+  const cc = (ax, ay, ar, bx, by, br) => Math.hypot(ax - bx, ay - by) < ar + br + GAP;
+  const cr = (cx, cy, r, x, y, w, h) => {                       // círculo contra rectángulo
+    const dx = Math.max(Math.abs(cx - x) - w / 2, 0), dy = Math.max(Math.abs(cy - y) - h / 2, 0);
+    return Math.hypot(dx, dy) < r + GAP;
+  };
+  const rr = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 + GAP && Math.abs(a.ly - b.ly) < (a.h + b.h) / 2 + GAP;
+  const hit = (a, b) => cc(a.x, a.y, RC, b.x, b.y, RC) || cr(a.x, a.y, RC, b.x, b.ly, b.w, b.h)
+                     || cr(b.x, b.y, RC, a.x, a.ly, a.w, a.h) || rr(a, b);
+  const hitFab = a => cc(a.x, a.y, RC, 0, 0, 36) || cr(0, 0, 36, a.x, a.ly, a.w, a.h);
+  const onScreen = a => Math.abs(a.x) + Math.max(RC, a.w / 2) < half && a.ly + a.h / 2 < 40;
+  const at = (i, r, t) => shape(i, r * Math.cos(t), -r * Math.sin(t));
+
+  // Un anillo de radio r con los elementos [k, k+n): devuelve sus formas centradas o null si no cabe
+  function ring(k, n, r, placed){
+    let t = maxT; const angs = [t];
+    for (let i = 1; i < n; i++){
+      const prev = at(k + i - 1, r, angs[i - 1]);
+      do t -= .03; while (t > minT && hit(prev, at(k + i, r, t)));   // paso grueso…
+      if (t <= minT) return null;
+      while (!hit(prev, at(k + i, r, t + dT))) t += dT;               // …y retrocede hasta tocar
+      angs.push(t);
+    }
+    const shift = (maxT + angs[n - 1]) / 2 - Math.PI / 2;          // centrar el abanico en la vertical
+    const pts = angs.map((a, i) => at(k + i, r, a - shift));
+    const bad = pts.some((p, i) => !onScreen(p) || hitFab(p) || placed.some(q => hit(p, q))
+                                 || pts.slice(0, i).some(q => hit(p, q)));
+    return bad ? null : pts;
+  }
+
+  const configs = [[3,4,4],[3,3,5],[2,4,5],[3,5,3],[4,3,4],[4,4,3],[4,7],[5,6],[3,8],[2,3,6],[2,4,5]];
   let best = null;
   for (const cfg of configs){
-    const placed = [fab], out = []; let k = 0, R = 80, ok = true;
+    const out = []; let k = 0, R = 64, ok = true;
     for (const n of cfg){
-      const ws = boxW.slice(k, k + n); let found = null;
-      for (let r = R; r < 520 && !found; r += 2){
-        const we = Math.max(ws[0], ws[n - 1]);
-        const t0 = n === 1 ? Math.PI / 2 : Math.max(minT, Math.acos(Math.min(1, (vw/2 - 4 - we/2) / r)));
-        if (n > 1 && t0 >= Math.PI / 2 - .05) continue;
-        const pts = ws.map((w, i) => {
-          const t = n === 1 ? Math.PI / 2 : Math.PI - t0 - (Math.PI - 2 * t0) * i / (n - 1);
-          const x = r * Math.cos(t), y = -r * Math.sin(t);
-          return {x, y, cy:y + cyOff, w, h:H};         // la caja se alarga hacia abajo por el nombre
-        });
-        if (pts.some(p => Math.abs(p.x) + p.w / 2 > vw / 2 - 4)) continue;
-        const clash = pts.some((p, i) => placed.some(q => hit(p, q)) || pts.slice(0, i).some(q => hit(p, q)));
-        if (!clash) found = {r, pts};
-      }
-      if (!found){ ok = false; break; }
-      placed.push(...found.pts); out.push(...found.pts); k += n; R = found.r + 40;
+      let pts = null, r = R;
+      for (; r < 460 && !pts; r += 6) pts = ring(k, n, r, out);       // radio grueso…
+      if (!pts){ ok = false; break; }
+      r -= 6;
+      for (let rr2 = r - 5; rr2 < r; rr2++){ const q = ring(k, n, rr2, out); if (q){ pts = q; r = rr2; break; } } // …y afinado
+      out.push(...pts); k += n; R = r + 20;
     }
     if (!ok) continue;
-    const top = Math.min(...out.map(p => p.y - 30));   // elegimos la forma más compacta
-    if (!best || top > best.top) best = {top, out};
+    const top = Math.min(...out.map(p => p.y - RC));
+    if (!best || top > best.top) best = {top, out};             // la forma más baja = la más compacta
   }
   best?.out.forEach((p, i) => { bubbles[i].x = Math.round(p.x); bubbles[i].y = Math.round(p.y); });
 }
-addEventListener('resize', () => { layoutCluster(); if (body.classList.contains('cluster-open')) openCluster(); });
+addEventListener('resize', () => { if (body.classList.contains('cluster-open')) openCluster(); });
 
 // Lee dónde está la burbuja AHORA para poder interrumpir a medio camino sin saltos
-function presentState(el){
-  const cs = getComputedStyle(el);
-  return {transform: cs.transform === 'none' ? 'translate(0px,0px) scale(.2)' : cs.transform, opacity: cs.opacity};
+// Cerrada, cada burbuja espera girada hacia su lado: al abrir se endereza, como un abanico que se despliega
+const folded = b => `translate(0px,0px) rotate(${Math.round(Math.atan2(b.x, -b.y) * 57.3)}deg) scale(.2)`;
+function presentState(b){
+  const cs = getComputedStyle(b.el);
+  return {transform: cs.transform === 'none' || +cs.opacity === 0 ? folded(b) : cs.transform, opacity: cs.opacity};
 }
 // Todas a la vez: brotan del + hacia su sitio con un muelle
 function openCluster(){
@@ -551,7 +607,7 @@ function openCluster(){
   layoutCluster();
   const reduce = reduceMotion();
   bubbles.forEach(b => {
-    const from = presentState(b.el), to = `translate(${b.x}px,${b.y}px) scale(1)`;
+    const from = presentState(b), to = `translate(${b.x}px,${b.y}px) rotate(0deg) scale(1)`;
     b.el.getAnimations().forEach(a => a.cancel());
     b.el.animate(reduce ? [{transform:to, opacity:from.opacity}, {transform:to, opacity:1}]
                         : [from, {transform:to, opacity:1}],
@@ -564,9 +620,9 @@ function closeCluster(){
   const reduce = reduceMotion();
   // Vuelven todas juntas al botón, por el mismo camino
   bubbles.forEach(b => {
-    const from = presentState(b.el);
+    const from = presentState(b);
     b.el.getAnimations().forEach(a => a.cancel());
-    b.el.animate([from, reduce ? {transform:from.transform, opacity:0} : {transform:'translate(0px,0px) scale(.2)', opacity:0}],
+    b.el.animate([from, reduce ? {transform:from.transform, opacity:0} : {transform:folded(b), opacity:0}],
       {duration: reduce ? 150 : 280, easing:'cubic-bezier(.32,.72,0,1)', fill:'both'});
   });
 }
@@ -604,15 +660,24 @@ function openForm(type, preselectedCat){
     <input class="field" id="note" maxlength="40" placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
     <button class="primary" id="saveBtn">${isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type);
 
+  // Detrás de la hoja dejamos a la vista la tarjeta del saldo, para ver luego cómo cambian los números
+  if (scrollY > 0) scrollTo({top:0, behavior: reduceMotion() ? 'auto' : 'smooth'});
+  if (page !== 0) goPage(0);
   setTimeout(() => $('#amount').focus(), 350);
   $('#saveBtn').addEventListener('click', () => {
     const amount = parseFloat(($('#amount').value || '').replace(/\./g,'').replace(',', '.'));
     if (!(amount > 0)){ const w = $('.amount-wrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); return; }
     const m = {id:Date.now(), type, amount:Math.round(amount*100)/100, note:$('#note').value.trim(), date:new Date().toISOString()};
     if (!isIn) m.cat = c.id;
-    movs.push(m); justAdded = m.id; chartDrawn = false; save(); closeSheet(); render();
+    movs.push(m); justAdded = m.id; chartDrawn = false; save(); closeSheet();
     navigator.vibrate?.(12);
-    const card = $('.card'); card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+    if (scrollY > 0) scrollTo({top:0});
+    if (page !== 0) goPage(0);
+    // Esperamos a que la hoja baje: así el conteo en color se ve entero sobre la tarjeta
+    setTimeout(() => {
+      render(type);
+      const card = $('.card'); card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+    }, reduceMotion() ? 0 : 260);
   });
 }
 
@@ -722,6 +787,7 @@ sheet.addEventListener('click', e => { if (e.target.closest('[data-close]')) clo
     if (e.key === 'ArrowRight') goTo(page + 1); else if (e.key === 'ArrowLeft') goTo(page - 1);
   });
   addEventListener('resize', () => { goTo(page, false); drawChart(false); });
+  goPage = goTo;
   goTo(0, false);
 })();
 
@@ -739,6 +805,8 @@ $('#undo').addEventListener('click', () => {
 const hoy = new Date().toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
 render();
+// El abanico se calcula en un momento libre, para que al pulsar Gasto ya esté listo
+(window.requestIdleCallback || setTimeout)(() => layoutCluster());
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
