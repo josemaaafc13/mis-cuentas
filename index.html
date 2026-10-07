@@ -173,7 +173,7 @@ body.menu-open .opt.out{transition-delay:.05s}
 /* Racimo de categorías: brotan del botón + como burbujas (posición y animación en JS con WAAPI) */
 .cluster{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 54px);z-index:26;width:0;height:0;pointer-events:none}
 body.cluster-open .cluster{pointer-events:auto}
-.cb{position:absolute;left:-40px;top:-40px;width:80px;display:flex;flex-direction:column;align-items:center;gap:5px;
+.cb{position:absolute;left:-40px;top:-30px;width:80px;display:flex;flex-direction:column;align-items:center;gap:5px;
   opacity:0;will-change:transform,opacity}
 .cb .ico{width:60px;height:60px;border-radius:50%;font-size:1.65rem;
   background:color-mix(in srgb,var(--c) 22%,var(--surface));
@@ -203,13 +203,9 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
 .field{display:block;width:100%;margin:10px 0;padding:14px 16px;border-radius:16px;border:1px solid transparent;
   background:var(--surface-2);color:var(--text);font:inherit;font-size:16px;outline:0;transition:border-color .2s,background .2s}
 .field:focus{border-color:var(--sky-400);background:var(--surface)}
-.cats-title{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 4px 8px}
-.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.cat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:18px;font-size:.72rem;font-weight:600;
-  background:var(--surface-2);border:2px solid transparent;transition:transform .3s var(--spring),border-color .2s,background .2s}
-.cat .ico{width:38px;height:38px;border-radius:12px;font-size:1.15rem}
-.cat:active{transform:scale(.93)}
-.cat.sel{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--surface));transform:scale(1.04)}
+.picked{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;margin:4px auto 0;padding:6px 14px 6px 6px;
+  border-radius:999px;background:var(--surface-2);font-weight:700;font-size:.95rem}
+.picked .ico{width:30px;height:30px;border-radius:50%;font-size:1rem}
 .primary{width:100%;margin-top:14px;padding:16px;border-radius:18px;font-weight:700;font-size:1.05rem;color:#fff;
   background:linear-gradient(145deg,#0275B5,var(--sky-700));box-shadow:0 8px 20px rgba(14,165,233,.35);transition:transform .12s ease-out,opacity .2s}
 .sheet[data-type=in] .primary{background:linear-gradient(145deg,#16A34A,#15803D);box-shadow:0 8px 20px rgba(34,197,94,.35)}
@@ -493,52 +489,85 @@ $('#scrim').addEventListener('click', () => { body.classList.remove('menu-open')
 document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () =>
   b.dataset.open === 'out' ? openCluster() : openForm('in')));
 
-// ── Racimo de categorías tipo Apple Watch ──
-// Panal desde arriba: 3 · 4 · 3 · 1 (la burbuja suelta queda justo encima del +)
-const ROWS = [[-80, 0, 80], [-120, -40, 40, 120], [-80, 0, 80], [0]];
-const ROW_Y = [-336, -256, -176, -96];
+// ── Burbujas de categoría en anillos alrededor del + ──
 const cluster = $('#cluster');
-const bubbles = (() => {
-  let k = 0;
-  return ROWS.flatMap((xs, r) => xs.map(x => {
-    const c = CATS[k++], el = document.createElement('button');
-    el.className = 'cb'; el.dataset.cat = c.id; el.style.setProperty('--c', c.color);
-    el.innerHTML = `<span class="ico">${c.emoji}</span><span>${c.name}</span>`;
-    cluster.appendChild(el);
-    return {el, x, y:ROW_Y[r], dist:Math.hypot(x, ROW_Y[r])};
-  }));
-})();
-// Orden de salida: primero las más cercanas al botón (receta center-outward-expansion)
-const byDistance = [...bubbles].sort((a,b) => a.dist - b.dist);
+const bubbles = CATS.map(c => {
+  const el = document.createElement('button');
+  el.className = 'cb'; el.dataset.cat = c.id; el.style.setProperty('--c', c.color);
+  el.innerHTML = `<span class="ico">${c.emoji}</span><span>${c.name}</span>`;
+  cluster.appendChild(el);
+  return {el, x:0, y:0};
+});
+
+// Coloca las burbujas en anillos (semicírculo sobre el +) midiendo el ancho real de cada nombre,
+// de modo que ninguna caja "burbuja + nombre" se solape con otra, con el botón ni con el borde de la pantalla.
+function layoutCluster(){
+  const vw = Math.min(innerWidth, 520), minT = 8 * Math.PI / 180, GAP = 8;
+  const boxW = bubbles.map(b => Math.max(60, b.el.lastElementChild.offsetWidth) + GAP);
+  // Altura real: desde el borde superior de la burbuja (-30) hasta el final del nombre
+  const lb = bubbles[0].el.lastElementChild, bottom = lb.offsetTop + lb.offsetHeight - 30;
+  const H = bottom + 30 + GAP, cyOff = (bottom - 30) / 2;
+  const fab = {x:0, cy:0, w:84, h:84};
+  const hit = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.cy - b.cy) < (a.h + b.h) / 2;
+  const configs = [[4,7],[5,6],[3,8],[4,4,3],[3,4,4],[3,5,3],[4,3,4],[2,4,5],[3,3,5]];
+  let best = null;
+  for (const cfg of configs){
+    const placed = [fab], out = []; let k = 0, R = 80, ok = true;
+    for (const n of cfg){
+      const ws = boxW.slice(k, k + n); let found = null;
+      for (let r = R; r < 520 && !found; r += 2){
+        const we = Math.max(ws[0], ws[n - 1]);
+        const t0 = n === 1 ? Math.PI / 2 : Math.max(minT, Math.acos(Math.min(1, (vw/2 - 4 - we/2) / r)));
+        if (n > 1 && t0 >= Math.PI / 2 - .05) continue;
+        const pts = ws.map((w, i) => {
+          const t = n === 1 ? Math.PI / 2 : Math.PI - t0 - (Math.PI - 2 * t0) * i / (n - 1);
+          const x = r * Math.cos(t), y = -r * Math.sin(t);
+          return {x, y, cy:y + cyOff, w, h:H};         // la caja se alarga hacia abajo por el nombre
+        });
+        if (pts.some(p => Math.abs(p.x) + p.w / 2 > vw / 2 - 4)) continue;
+        const clash = pts.some((p, i) => placed.some(q => hit(p, q)) || pts.slice(0, i).some(q => hit(p, q)));
+        if (!clash) found = {r, pts};
+      }
+      if (!found){ ok = false; break; }
+      placed.push(...found.pts); out.push(...found.pts); k += n; R = found.r + 40;
+    }
+    if (!ok) continue;
+    const top = Math.min(...out.map(p => p.y - 30));   // elegimos la forma más compacta
+    if (!best || top > best.top) best = {top, out};
+  }
+  best?.out.forEach((p, i) => { bubbles[i].x = Math.round(p.x); bubbles[i].y = Math.round(p.y); });
+}
+addEventListener('resize', () => { layoutCluster(); if (body.classList.contains('cluster-open')) openCluster(); });
 
 // Lee dónde está la burbuja AHORA para poder interrumpir a medio camino sin saltos
 function presentState(el){
   const cs = getComputedStyle(el);
   return {transform: cs.transform === 'none' ? 'translate(0px,0px) scale(.2)' : cs.transform, opacity: cs.opacity};
 }
+// Todas a la vez: brotan del + hacia su sitio con un muelle
 function openCluster(){
   body.classList.remove('menu-open');
   body.classList.add('cluster-open');
+  layoutCluster();
   const reduce = reduceMotion();
-  byDistance.forEach((b, rank) => {
+  bubbles.forEach(b => {
     const from = presentState(b.el), to = `translate(${b.x}px,${b.y}px) scale(1)`;
     b.el.getAnimations().forEach(a => a.cancel());
     b.el.animate(reduce ? [{transform:to, opacity:from.opacity}, {transform:to, opacity:1}]
                         : [from, {transform:to, opacity:1}],
-      {duration: reduce ? 200 : 560, delay: reduce ? 0 : rank * 32,           // 11 × 32 ms ≈ 0,35 s: se lee como un solo golpe
-       easing: 'cubic-bezier(.34,1.45,.64,1)', fill:'both'});
+      {duration: reduce ? 200 : 520, easing:'cubic-bezier(.34,1.4,.64,1)', fill:'both'});
   });
 }
 function closeCluster(){
   if (!body.classList.contains('cluster-open')) return;
   body.classList.remove('cluster-open');
-  const reduce = reduceMotion(), n = byDistance.length;
-  // Vuelven por el mismo camino: las más lejanas primero, hacia el botón
-  byDistance.forEach((b, rank) => {
+  const reduce = reduceMotion();
+  // Vuelven todas juntas al botón, por el mismo camino
+  bubbles.forEach(b => {
     const from = presentState(b.el);
     b.el.getAnimations().forEach(a => a.cancel());
     b.el.animate([from, reduce ? {transform:from.transform, opacity:0} : {transform:'translate(0px,0px) scale(.2)', opacity:0}],
-      {duration: reduce ? 150 : 300, delay: reduce ? 0 : (n - 1 - rank) * 14, easing:'cubic-bezier(.32,.72,0,1)', fill:'both'});
+      {duration: reduce ? 150 : 280, easing:'cubic-bezier(.32,.72,0,1)', fill:'both'});
   });
 }
 cluster.addEventListener('click', e => {
@@ -567,24 +596,20 @@ function closeSheet(){
 }
 
 function openForm(type, preselectedCat){
-  const isIn = type === 'in', selCat = preselectedCat || CATS[0].id;
+  const isIn = type === 'in', c = isIn ? INCOME : (CATS.find(x => x.id === preselectedCat) || CATS[0]);
   openSheet(`
     <div class="sheet-head"><h3>${isIn ? 'Nuevo ingreso' : 'Nuevo gasto'}</h3><button class="close" data-close>✕</button></div>
-    ${isIn ? '' : `<div class="cats-title">Categoría</div><div class="cats">${CATS.map(c =>
-      `<button class="cat${c.id===selCat?' sel':''}" data-cat="${c.id}" style="--c:${c.color}"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>${c.name}</button>`).join('')}</div>`}
+    ${isIn ? '' : `<div class="picked"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>${c.name}</div>`}
     <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"><span class="cur">€</span></label>
     <input class="field" id="note" maxlength="40" placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
     <button class="primary" id="saveBtn">${isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type);
 
-  sheet.querySelectorAll('.cat').forEach(b => b.addEventListener('click', () => {
-    sheet.querySelectorAll('.cat').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
-  }));
-  if (isIn || preselectedCat) setTimeout(() => $('#amount').focus(), 350);
+  setTimeout(() => $('#amount').focus(), 350);
   $('#saveBtn').addEventListener('click', () => {
     const amount = parseFloat(($('#amount').value || '').replace(/\./g,'').replace(',', '.'));
     if (!(amount > 0)){ const w = $('.amount-wrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); return; }
     const m = {id:Date.now(), type, amount:Math.round(amount*100)/100, note:$('#note').value.trim(), date:new Date().toISOString()};
-    if (!isIn) m.cat = sheet.querySelector('.cat.sel')?.dataset.cat || CATS[0].id;
+    if (!isIn) m.cat = c.id;
     movs.push(m); justAdded = m.id; chartDrawn = false; save(); closeSheet(); render();
     navigator.vibrate?.(12);
     const card = $('.card'); card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
