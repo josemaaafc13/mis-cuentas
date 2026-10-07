@@ -32,14 +32,26 @@
   --shadow-s:0 1px 2px rgba(0,0,0,.3); --shadow-l:0 10px 30px rgba(0,0,0,.5);
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--text);
+html,body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--text);
   font:100%/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100dvh;overscroll-behavior-y:none;
-  background:radial-gradient(120% 60% at 50% -10%,var(--sky-100),transparent 70%),var(--bg)}
+body{min-height:100dvh;overscroll-behavior-y:none;background:var(--bg)}
 @media (prefers-color-scheme:dark){.card,.fab,.primary,.sheet[data-type] .primary,.opt,.toast{box-shadow:0 10px 30px rgba(0,0,0,.5)!important}}
-@media (prefers-color-scheme:dark){body{background:radial-gradient(120% 60% at 50% -10%,rgba(14,165,233,.22),transparent 70%),var(--bg)}}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-.app{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px)}
+.app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px)}
+
+/* Fondo vivo: manchas de color que flotan despacio por toda la pantalla.
+   Degradados radiales en vez de filter:blur → mismo aspecto difuminado, mucho más barato en el móvil. */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg i{position:absolute;width:85vmax;height:85vmax;border-radius:50%;will-change:transform;
+  background:radial-gradient(circle,var(--c) 0%,transparent 62%);opacity:.55;animation:float-a 26s ease-in-out infinite alternate}
+.bg i:nth-child(1){--c:#38BDF8;left:-35vmax;top:-30vmax}
+.bg i:nth-child(2){--c:#7DD3FC;right:-40vmax;top:5vh;animation-name:float-b;animation-duration:31s}
+.bg i:nth-child(3){--c:#2DD4BF;left:-30vmax;top:45vh;opacity:.4;animation-duration:23s;animation-delay:-8s}
+.bg i:nth-child(4){--c:#818CF8;right:-35vmax;bottom:-35vmax;opacity:.38;animation-name:float-b;animation-duration:28s;animation-delay:-12s}
+.bg i:nth-child(5){--c:#BAE6FD;left:10vw;top:20vh;width:60vmax;height:60vmax;opacity:.5;animation-duration:35s;animation-delay:-4s}
+@keyframes float-a{to{transform:translate(12vmax,9vmax) scale(1.15)}}
+@keyframes float-b{to{transform:translate(-10vmax,12vmax) scale(.9)}}
+@media (prefers-color-scheme:dark){.bg i{opacity:.22} .bg i:nth-child(n+3){opacity:.16}}
 
 /* Cabecera */
 .top{display:flex;align-items:center;justify-content:space-between;margin:4px 4px 16px}
@@ -50,6 +62,33 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 
 /* Tarjeta de saldo */
 /* Manchas de color detrás del cristal: el desenfoque las convierte en celeste líquido */
+/* Carrusel Saldo ↔ Resumen: el ancho de página + hueco se mide en JS */
+/* Recorta solo en horizontal: el difuminado de las manchas sigue libre arriba y abajo */
+.pager{overflow-x:clip;overflow-y:visible;margin:0 -16px;padding:0 16px 14px;touch-action:pan-y}
+.track{display:flex;gap:32px;align-items:stretch;will-change:transform}
+.page{flex:0 0 100%;min-width:0;display:flex;transform-origin:50% 50%}
+.page .card-wrap{flex:1;min-width:0;display:flex}
+.page .card{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.dots{position:relative;display:flex;justify-content:center;gap:2px}
+.pdot{padding:8px 0}
+.pdot i{display:block;width:20px;height:7px;border-radius:4px;background:rgba(10,37,64,.22);transform:scaleX(.35);
+  transition:transform .35s var(--ease-ios),background-color .35s}
+.pdot.on i{transform:none;background:var(--sky-700)}
+@media (prefers-color-scheme:dark){.pdot i{background:rgba(255,255,255,.25)} .pdot.on i{background:var(--sky-300)}}
+
+/* Tarjeta de resumen */
+.sum-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.legend{display:flex;gap:10px;font-size:.72rem;font-weight:700;color:#24506F}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.legend .lo i{background:var(--red)}
+.net{font-size:1.45rem;font-weight:800;letter-spacing:-.025em;margin:2px 0 4px;font-variant-numeric:tabular-nums}
+.net small{font-size:.75rem;font-weight:700;color:#24506F;letter-spacing:0;margin-left:4px}
+#chart{display:block;width:100%;height:118px;overflow:visible}
+#chart text{font:600 10px -apple-system,system-ui,sans-serif;fill:#24506F;text-anchor:middle}
+#chart .grid{stroke:rgba(10,37,64,.1);stroke-dasharray:3 4}
+@media (prefers-color-scheme:dark){.legend,.net small{color:#B5D3E8} #chart text{fill:#B5D3E8} #chart .grid{stroke:rgba(255,255,255,.12)}}
+
 .card-wrap{position:relative;isolation:isolate}
 .blob{position:absolute;z-index:-1;border-radius:50%;filter:blur(28px);pointer-events:none;animation:drift 14s ease-in-out infinite alternate}
 .blob.b1{width:210px;height:210px;left:-30px;top:-30px;background:#38BDF8}
@@ -80,12 +119,19 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .section-title{display:flex;justify-content:space-between;align-items:baseline;margin:26px 6px 8px}
 .section-title h2{margin:0;font-size:1.25rem;letter-spacing:-.015em}
 .section-title span{color:var(--muted);font-size:.85rem}
-.day{margin:16px 6px 6px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.list{background:var(--surface);border-radius:22px;box-shadow:var(--shadow-s);overflow:hidden}
-.mov{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:left;position:relative;
-  transition:background-color .15s, transform .12s ease-out;animation:rise .55s var(--ease-ios) both}
-.mov+.mov::before{content:"";position:absolute;top:0;left:64px;right:0;height:1px;background:var(--line)}
-.mov:active{background:var(--surface-2);transform:scale(.985)}
+.day{display:flex;justify-content:space-between;margin:18px 8px 8px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.day b{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0}
+.list{display:flex;flex-direction:column;gap:8px}
+/* Cada movimiento es su propia burbuja de cristal; al soltar rebota con muelle */
+.mov{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:left;position:relative;border-radius:22px;
+  background:rgba(255,255,255,.58);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(255,255,255,.4),0 4px 16px rgba(14,100,170,.08);
+  transition:transform .45s var(--spring)}
+.mov.enter{animation:rise .55s var(--ease-ios) backwards}
+.mov:active{transform:scale(.97);transition-duration:.1s}
+@media (prefers-color-scheme:dark){
+  .mov{background:rgba(14,30,44,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.06),0 4px 16px rgba(0,0,0,.3)}
+}
 .ico{flex:none;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:1.25rem}
 .mov .txt{flex:1;min-width:0}
 .mov .txt b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -123,6 +169,19 @@ body.menu-open .menu{pointer-events:auto}
 body.menu-open .opt{opacity:1;transform:none}
 body.menu-open .opt.out{transition-delay:.05s}
 .opt:active{transform:scale(.95)!important}
+
+/* Racimo de categorías: brotan del botón + como burbujas (posición y animación en JS con WAAPI) */
+.cluster{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 54px);z-index:26;width:0;height:0;pointer-events:none}
+body.cluster-open .cluster{pointer-events:auto}
+.cb{position:absolute;left:-40px;top:-40px;width:80px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  opacity:0;will-change:transform,opacity}
+.cb .ico{width:60px;height:60px;border-radius:50%;font-size:1.65rem;
+  background:color-mix(in srgb,var(--c) 22%,var(--surface));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 1.5px color-mix(in srgb,var(--c) 45%,transparent),0 8px 20px color-mix(in srgb,var(--c) 30%,transparent)}
+.cb span:last-child{padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+body.cluster-open .scrim{opacity:1;pointer-events:auto}
+body.cluster-open .fab svg{transform:rotate(135deg)}
 
 /* Hoja inferior */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;max-height:92dvh;overflow:auto;
@@ -181,29 +240,53 @@ body.menu-open .opt.out{transition-delay:.05s}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
   .sheet,.opt,.toast,.fab,.fab svg{transition:opacity .2s ease!important}
+  .bg i{animation:none!important}
 }
 @media (prefers-reduced-transparency:reduce){
-  .opt,.toast{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+  .opt,.toast,.mov,.cb span:last-child{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+  .bg{display:none} body{background:linear-gradient(180deg,var(--sky-100),var(--bg) 60%)}
 }
 </style>
 </head>
 <body>
+<div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 <main class="app">
   <header class="top">
     <div><small id="today"></small><h1>Mis cuentas</h1></div>
     <div class="avatar">J</div>
   </header>
 
-  <div class="card-wrap">
-  <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
-  <section class="card" aria-label="Saldo">
-    <div class="label">Saldo total</div>
-    <div class="balance" id="balance">0,00 €</div>
-    <div class="stats">
-      <div class="stat"><span><i class="dot in">↓</i>Ingresos del mes</span><b id="monthIn">0 €</b></div>
-      <div class="stat"><span><i class="dot out">↑</i>Gastos del mes</span><b id="monthOut">0 €</b></div>
+  <div class="pager" id="pager" aria-roledescription="carrusel">
+  <div class="track" id="track">
+    <div class="page" aria-label="Saldo">
+      <div class="card-wrap">
+      <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
+      <section class="card">
+        <div><div class="label">Saldo total</div>
+        <div class="balance" id="balance">0,00 €</div></div>
+        <div class="stats">
+          <div class="stat"><span><i class="dot in">↓</i>Ingresos del mes</span><b id="monthIn">0 €</b></div>
+          <div class="stat"><span><i class="dot out">↑</i>Gastos del mes</span><b id="monthOut">0 €</b></div>
+        </div>
+      </section>
+      </div>
     </div>
-  </section>
+    <div class="page" aria-label="Resumen">
+      <div class="card-wrap">
+      <i class="blob b2"></i><i class="blob b3"></i><i class="blob b1"></i><i class="blob b4"></i>
+      <section class="card">
+        <div class="sum-head"><div class="label">Últimos 6 meses</div>
+          <div class="legend"><span><i></i>Ingresos</span><span class="lo"><i></i>Gastos</span></div></div>
+        <div class="net" id="net">0 €<small>ahorrado</small></div>
+        <svg id="chart" role="img" aria-label="Gráfica de ingresos y gastos de los últimos 6 meses"></svg>
+      </section>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="dots" role="tablist">
+    <button class="pdot on" data-page="0" aria-label="Ver saldo"><i></i></button>
+    <button class="pdot" data-page="1" aria-label="Ver resumen"><i></i></button>
   </div>
 
   <div class="section-title"><h2>Movimientos</h2><span id="count"></span></div>
@@ -217,6 +300,7 @@ body.menu-open .opt.out{transition-delay:.05s}
   <button class="opt in" data-open="in"><span class="ico">＋</span>Ingreso</button>
   <button class="opt out" data-open="out"><span class="ico">－</span>Gasto</button>
 </nav>
+<div class="cluster" id="cluster" aria-label="Categorías de gasto"></div>
 <button class="fab" id="fab" aria-label="Añadir movimiento">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
@@ -251,6 +335,8 @@ const eur0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maxi
 
 let movs = load();
 let shownBalance = 0, lastDeleted = null;
+let firstRender = true, justAdded = null, page = 0, chartDrawn = false;
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function load(){
   try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch {}
@@ -287,22 +373,101 @@ function render(){
   countTo(total);
   $('#count').textContent = movs.length ? `${movs.length} en total` : '';
 
+  drawChart(page === 1 && !chartDrawn);
+
   const sorted = [...movs].sort((a,b) => new Date(b.date) - new Date(a.date));
   if (!sorted.length){
     $('#movs').innerHTML = `<div class="empty"><div>🪙</div>Aún no hay movimientos.<br>Pulsa <b>+</b> para añadir el primero.</div>`;
     return;
   }
-  let html = '', current = '', i = 0;
+  // Agrupa por día conservando el orden: [{label, total, items}]
+  const days = [];
   for (const m of sorted){
     const label = dayLabel(m.date);
-    if (label !== current){ if (current) html += '</div>'; html += `<div class="day">${label}</div><div class="list">`; current = label; }
-    const c = catOf(m);
-    html += `<button class="mov" data-id="${m.id}" style="animation-delay:${Math.min(i++,10)*40}ms">
-      <span class="ico" style="${tint(c.color)}">${c.emoji}</span>
-      <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}</small></span>
-      <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
+    if (days.at(-1)?.label !== label) days.push({label, total:0, items:[]});
+    const d = days.at(-1);
+    d.items.push(m); d.total += m.type === 'in' ? m.amount : -m.amount;
   }
-  $('#movs').innerHTML = html + '</div>';
+  // Entrada en cascada solo la primera vez (o para el que acabas de añadir), para que no parpadee al guardar
+  let i = 0, html = '';
+  for (const d of days){
+    html += `<div class="day"><span>${d.label}</span><b>${d.total >= 0 ? '+' : '−'}${eur.format(Math.abs(d.total))}</b></div><div class="list">`;
+    for (const m of d.items){
+      const c = catOf(m), enter = firstRender || m.id === justAdded;
+      const delay = firstRender ? Math.min(i++, 10) * 40 : 0;
+      html += `<button class="mov${enter ? ' enter' : ''}" data-id="${m.id}"${delay ? ` style="animation-delay:${delay}ms"` : ''}>
+        <span class="ico" style="${tint(c.color)}">${c.emoji}</span>
+        <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}</small></span>
+        <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
+    }
+    html += '</div>';
+  }
+  $('#movs').innerHTML = html;
+  firstRender = false; justAdded = null;
+}
+
+// ── Gráfica de resumen: dos curvas suaves en SVG, sin librerías ──
+function aggregateByMonth(list, n){
+  const now = new Date(), fmt = new Intl.DateTimeFormat('es-ES',{month:'short'});
+  const months = Array.from({length:n}, (_, k) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - k), 1);
+    return {y:d.getFullYear(), m:d.getMonth(), label:fmt.format(d).replace('.', ''), in:0, out:0};
+  });
+  for (const mv of list){
+    const d = new Date(mv.date);
+    const b = months.find(x => x.y === d.getFullYear() && x.m === d.getMonth());
+    if (b) b[mv.type] += mv.amount;
+  }
+  return months;
+}
+// Catmull-Rom → Bézier: la curva pasa por todos los puntos sin picos
+function smoothPath(pts){
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let k = 0; k < pts.length - 1; k++){
+    const p0 = pts[k-1] || pts[k], p1 = pts[k], p2 = pts[k+1], p3 = pts[k+2] || p2;
+    // Limita los puntos de control al tramo entre los dos meses: sin rebotes por debajo de 0
+    const lo = Math.min(p1[1], p2[1]), hi = Math.max(p1[1], p2[1]), clamp = v => Math.max(lo, Math.min(hi, v));
+    const c1 = [p1[0] + (p2[0]-p0[0])/6, clamp(p1[1] + (p2[1]-p0[1])/6)];
+    const c2 = [p2[0] - (p3[0]-p1[0])/6, clamp(p2[1] - (p3[1]-p1[1])/6)];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+function drawChart(animate){
+  const data = aggregateByMonth(movs, 6);
+  const sumIn = data.reduce((s,x) => s + x.in, 0), sumOut = data.reduce((s,x) => s + x.out, 0), net = sumIn - sumOut;
+  $('#net').innerHTML = `${net < 0 ? '−' : ''}${eur0.format(Math.abs(net))}<small>${net < 0 ? 'de más gastado' : 'ahorrado'}</small>`;
+
+  const svg = $('#chart'), W = svg.clientWidth || 300, H = 118, top = 8, bottom = H - 18, pad = 14;
+  const max = Math.max(1, ...data.flatMap(x => [x.in, x.out])) * 1.1;
+  const X = k => pad + k * (W - 2*pad) / (data.length - 1), Y = v => bottom - (v / max) * (bottom - top);
+  const series = [['in','#22C55E'], ['out','#FF3B30']].map(([key, color]) => {
+    const pts = data.map((x,k) => [X(k), Y(x[key])]), line = smoothPath(pts);
+    return {key, color, line, area:`${line} L${pts.at(-1)[0]},${bottom} L${pts[0][0]},${bottom} Z`, last:pts.at(-1)};
+  });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = `<defs>${series.map(s => `<linearGradient id="g-${s.key}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${s.color}" stop-opacity=".28"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')}</defs>
+    <line class="grid" x1="${pad}" x2="${W-pad}" y1="${bottom}" y2="${bottom}"/>
+    <line class="grid" x1="${pad}" x2="${W-pad}" y1="${(top+bottom)/2}" y2="${(top+bottom)/2}"/>
+    ${series.map(s => `<path class="area" d="${s.area}" fill="url(#g-${s.key})"/>
+      <path class="line" d="${s.line}" fill="none" stroke="${s.color}" stroke-width="2.6" stroke-linecap="round"/>
+      <circle class="end" cx="${s.last[0]}" cy="${s.last[1]}" r="4" fill="${s.color}" stroke="#fff" stroke-width="2"/>`).join('')}
+    ${data.map((x,k) => `<text x="${X(k)}" y="${H-3}">${x.label}</text>`).join('')}`;
+  if (animate) animateChart();
+}
+// Receta svg-path-draw: la línea se "dibuja" con stroke-dashoffset y el relleno aparece detrás
+function animateChart(){
+  chartDrawn = true;
+  if (reduceMotion()) return;
+  $('#chart').querySelectorAll('.line').forEach((p, k) => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.animate({strokeDashoffset:[len, 0]}, {duration:900, delay:k*120, easing:'cubic-bezier(.32,.72,0,1)', fill:'backwards'})
+      .finished.then(() => p.style.strokeDasharray = '').catch(() => {});
+  });
+  $('#chart').querySelectorAll('.area,.end').forEach((el, k) =>
+    el.animate({opacity:[0, 1]}, {duration:500, delay:500 + (k % 2) * 120, easing:'ease-out', fill:'backwards'}));
 }
 
 // El saldo "cuenta" hasta el nuevo valor
@@ -319,9 +484,70 @@ function countTo(target){
 
 // Botón + y su menú
 const body = document.body;
-$('#fab').addEventListener('click', () => body.classList.contains('sheet-open') ? closeSheet() : body.classList.toggle('menu-open'));
-$('#scrim').addEventListener('click', () => { body.classList.remove('menu-open'); closeSheet(); });
-document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openForm(b.dataset.open)));
+$('#fab').addEventListener('click', () => {
+  if (body.classList.contains('sheet-open')) closeSheet();
+  else if (body.classList.contains('cluster-open')) closeCluster();
+  else body.classList.toggle('menu-open');
+});
+$('#scrim').addEventListener('click', () => { body.classList.remove('menu-open'); closeCluster(); closeSheet(); });
+document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () =>
+  b.dataset.open === 'out' ? openCluster() : openForm('in')));
+
+// ── Racimo de categorías tipo Apple Watch ──
+// Panal desde arriba: 3 · 4 · 3 · 1 (la burbuja suelta queda justo encima del +)
+const ROWS = [[-80, 0, 80], [-120, -40, 40, 120], [-80, 0, 80], [0]];
+const ROW_Y = [-336, -256, -176, -96];
+const cluster = $('#cluster');
+const bubbles = (() => {
+  let k = 0;
+  return ROWS.flatMap((xs, r) => xs.map(x => {
+    const c = CATS[k++], el = document.createElement('button');
+    el.className = 'cb'; el.dataset.cat = c.id; el.style.setProperty('--c', c.color);
+    el.innerHTML = `<span class="ico">${c.emoji}</span><span>${c.name}</span>`;
+    cluster.appendChild(el);
+    return {el, x, y:ROW_Y[r], dist:Math.hypot(x, ROW_Y[r])};
+  }));
+})();
+// Orden de salida: primero las más cercanas al botón (receta center-outward-expansion)
+const byDistance = [...bubbles].sort((a,b) => a.dist - b.dist);
+
+// Lee dónde está la burbuja AHORA para poder interrumpir a medio camino sin saltos
+function presentState(el){
+  const cs = getComputedStyle(el);
+  return {transform: cs.transform === 'none' ? 'translate(0px,0px) scale(.2)' : cs.transform, opacity: cs.opacity};
+}
+function openCluster(){
+  body.classList.remove('menu-open');
+  body.classList.add('cluster-open');
+  const reduce = reduceMotion();
+  byDistance.forEach((b, rank) => {
+    const from = presentState(b.el), to = `translate(${b.x}px,${b.y}px) scale(1)`;
+    b.el.getAnimations().forEach(a => a.cancel());
+    b.el.animate(reduce ? [{transform:to, opacity:from.opacity}, {transform:to, opacity:1}]
+                        : [from, {transform:to, opacity:1}],
+      {duration: reduce ? 200 : 560, delay: reduce ? 0 : rank * 32,           // 11 × 32 ms ≈ 0,35 s: se lee como un solo golpe
+       easing: 'cubic-bezier(.34,1.45,.64,1)', fill:'both'});
+  });
+}
+function closeCluster(){
+  if (!body.classList.contains('cluster-open')) return;
+  body.classList.remove('cluster-open');
+  const reduce = reduceMotion(), n = byDistance.length;
+  // Vuelven por el mismo camino: las más lejanas primero, hacia el botón
+  byDistance.forEach((b, rank) => {
+    const from = presentState(b.el);
+    b.el.getAnimations().forEach(a => a.cancel());
+    b.el.animate([from, reduce ? {transform:from.transform, opacity:0} : {transform:'translate(0px,0px) scale(.2)', opacity:0}],
+      {duration: reduce ? 150 : 300, delay: reduce ? 0 : (n - 1 - rank) * 14, easing:'cubic-bezier(.32,.72,0,1)', fill:'both'});
+  });
+}
+cluster.addEventListener('click', e => {
+  const b = e.target.closest('.cb'); if (!b) return;
+  navigator.vibrate?.(8);
+  // Receta press-release-spring: pulso rápido antes de abrir el formulario
+  b.querySelector('.ico').animate({transform:['scale(1)', 'scale(1.18)', 'scale(1)']}, {duration:260, easing:'cubic-bezier(.34,1.56,.64,1)'});
+  setTimeout(() => { closeCluster(); openForm('out', b.dataset.cat); }, 170);
+});
 
 // Hojas inferiores
 const sheet = $('#sheet');
@@ -340,12 +566,12 @@ function closeSheet(){
   document.activeElement?.blur();
 }
 
-function openForm(type){
-  const isIn = type === 'in';
+function openForm(type, preselectedCat){
+  const isIn = type === 'in', selCat = preselectedCat || CATS[0].id;
   openSheet(`
     <div class="sheet-head"><h3>${isIn ? 'Nuevo ingreso' : 'Nuevo gasto'}</h3><button class="close" data-close>✕</button></div>
-    ${isIn ? '' : `<div class="cats-title">Categoría</div><div class="cats">${CATS.map((c,i) =>
-      `<button class="cat${i===0?' sel':''}" data-cat="${c.id}" style="--c:${c.color}"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>${c.name}</button>`).join('')}</div>`}
+    ${isIn ? '' : `<div class="cats-title">Categoría</div><div class="cats">${CATS.map(c =>
+      `<button class="cat${c.id===selCat?' sel':''}" data-cat="${c.id}" style="--c:${c.color}"><span class="ico" style="${tint(c.color)}">${c.emoji}</span>${c.name}</button>`).join('')}</div>`}
     <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"><span class="cur">€</span></label>
     <input class="field" id="note" maxlength="40" placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
     <button class="primary" id="saveBtn">${isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type);
@@ -353,13 +579,13 @@ function openForm(type){
   sheet.querySelectorAll('.cat').forEach(b => b.addEventListener('click', () => {
     sheet.querySelectorAll('.cat').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
   }));
-  if (isIn) setTimeout(() => $('#amount').focus(), 350);
+  if (isIn || preselectedCat) setTimeout(() => $('#amount').focus(), 350);
   $('#saveBtn').addEventListener('click', () => {
     const amount = parseFloat(($('#amount').value || '').replace(/\./g,'').replace(',', '.'));
     if (!(amount > 0)){ const w = $('.amount-wrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); return; }
     const m = {id:Date.now(), type, amount:Math.round(amount*100)/100, note:$('#note').value.trim(), date:new Date().toISOString()};
     if (!isIn) m.cat = sheet.querySelector('.cat.sel')?.dataset.cat || CATS[0].id;
-    movs.push(m); save(); closeSheet(); render();
+    movs.push(m); justAdded = m.id; chartDrawn = false; save(); closeSheet(); render();
     navigator.vibrate?.(12);
     const card = $('.card'); card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
   });
@@ -400,6 +626,78 @@ sheet.addEventListener('click', e => { if (e.target.closest('[data-close]')) clo
   const end = () => { if (!active) return; active = false; sheet.classList.remove('dragging');
     if (dy > 120 || v > 700) closeSheet(); else sheet.style.transform = ''; };
   grab.addEventListener('pointerup', end); grab.addEventListener('pointercancel', end);
+})();
+
+// ── Carrusel Saldo ↔ Resumen ──
+// Sigue al dedo 1:1, proyecta el impulso al soltar (fórmula de Apple) y se puede agarrar a mitad de animación.
+(() => {
+  const pager = $('#pager'), track = $('#track'), pages = [...track.children], dots = [...document.querySelectorAll('.pdot')];
+  const last = pages.length - 1;
+  const step = () => pages[0].offsetWidth + 32;               // ancho de página + hueco (gap del .track)
+  const project = v => (v / 1000) * 0.998 / (1 - 0.998);
+  const rubber = (o, dim) => (o * dim * .55) / (dim + .55 * Math.abs(o));
+  let x = 0;
+
+  function setX(nx, animate){
+    x = nx;
+    const ease = animate ? `transform .55s var(--ease-ios)` : 'none';
+    track.style.transition = ease;
+    track.style.transform = `translate3d(${x}px,0,0)`;
+    // La tarjeta que se aleja baja un poco de escala → sensación de profundidad
+    const p = -x / step();
+    pages.forEach((pg, k) => { pg.style.transition = ease; pg.style.transform = `scale(${1 - .06 * Math.min(1, Math.abs(p - k))})`; });
+  }
+  function goTo(n, animate = true){
+    const prev = page;
+    page = Math.max(0, Math.min(last, n));
+    setX(-page * step(), animate);
+    dots.forEach((d, k) => { d.classList.toggle('on', k === page); d.setAttribute('aria-selected', k === page); });
+    if (page === 1 && (prev !== 1 || !chartDrawn)) setTimeout(animateChart, animate ? 180 : 0);
+  }
+  // Posición real en pantalla (por si se agarra mientras anima)
+  const currentX = () => new DOMMatrixReadOnly(getComputedStyle(track).transform).m41;
+
+  let x0 = 0, y0 = 0, start = 0, dir = null, lastX = 0, lastT = 0, v = 0, id = null;
+  pager.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    id = e.pointerId; dir = null; x0 = lastX = e.clientX; y0 = e.clientY; lastT = performance.now(); v = 0;
+    start = currentX(); setX(start, false);
+  });
+  pager.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if (!dir){                                                 // holgura de 10 px antes de decidir dirección
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      if (dir === 'v'){ id = null; goTo(page); return; }      // es scroll vertical: no lo tocamos
+      pager.setPointerCapture(e.pointerId);
+    }
+    const now = performance.now();
+    v = (e.clientX - lastX) / Math.max(1, now - lastT) * 1000; lastX = e.clientX; lastT = now;
+    let nx = start + dx; const min = -last * step();
+    if (nx > 0) nx = rubber(nx, pager.offsetWidth);             // resistencia elástica en los bordes
+    else if (nx < min) nx = min + rubber(nx - min, pager.offsetWidth);
+    setX(nx, false);
+  });
+  const end = e => {
+    if (e.pointerId !== id) return; id = null;
+    if (dir !== 'h'){ goTo(page); return; }
+    if (performance.now() - lastT > 80) v = 0;                 // si se quedó quieto antes de soltar, sin impulso
+    const target = Math.round(-(x + project(v)) / step());
+    goTo(Math.max(page - 1, Math.min(page + 1, target)));     // como mucho una página por gesto
+  };
+  pager.addEventListener('pointerup', end);
+  pager.addEventListener('pointercancel', end);
+  // Evita que un deslizamiento termine "pulsando" algo
+  pager.addEventListener('click', e => { if (dir === 'h') e.stopPropagation(); }, true);
+
+  dots.forEach(d => d.addEventListener('click', () => goTo(+d.dataset.page)));
+  document.addEventListener('keydown', e => {
+    if (body.classList.contains('sheet-open')) return;
+    if (e.key === 'ArrowRight') goTo(page + 1); else if (e.key === 'ArrowLeft') goTo(page - 1);
+  });
+  addEventListener('resize', () => { goTo(page, false); drawChart(false); });
+  goTo(0, false);
 })();
 
 // Aviso con "Deshacer"
