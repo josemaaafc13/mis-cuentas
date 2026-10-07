@@ -377,6 +377,67 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 @media (prefers-color-scheme:dark){.ghost{color:var(--sky-300)}}
 .mov .txt small .rec{margin-left:4px;font-weight:700}
 
+/* Cara Tarjeta / Efectivo */
+.acc-label{display:flex;align-items:center;gap:8px}
+.flip-hint{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:.8rem;
+  background:rgba(255,255,255,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.acc-total{margin:-12px 0 16px;font-size:.8rem;font-weight:700;color:#24506F;font-variant-numeric:tabular-nums}
+#balCard{cursor:pointer}
+#balWrap.cash .blob.b1{background:#34D399} #balWrap.cash .blob.b2{background:#A7F3D0} #balWrap.cash .blob.b4{background:#2DD4BF}
+#balWrap.cash .card{background:rgba(220,252,231,.28)}
+#balWrap.flipping{visibility:hidden}
+@media (prefers-color-scheme:dark){.acc-total{color:#B5D3E8} .flip-hint{background:rgba(255,255,255,.1);box-shadow:none}
+  #balWrap.cash .card{background:rgba(6,40,30,.32)}}
+.flip3d{position:fixed;z-index:15;pointer-events:none}
+
+/* Selector de cuenta al añadir */
+.accs{display:flex;justify-content:center;gap:22px;margin:12px 0 2px}
+.accs button{display:flex;flex-direction:column;align-items:center;gap:4px}
+.accs .ico{width:46px;height:46px;font-size:1.3rem;transition:transform .35s var(--spring),box-shadow .25s}
+.accs button.on .ico{transform:scale(1.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 3px color-mix(in srgb,var(--c) 75%,transparent),0 6px 16px color-mix(in srgb,var(--c) 30%,transparent)}
+.accs button:not(.on){opacity:.6}
+.mov .txt small .acc{margin-left:5px}
+
+/* Buscador y filtros */
+.search{margin:0 0 4px}
+.sbar{display:flex;align-items:center;gap:8px;height:44px;padding:0 6px 0 14px;border-radius:14px;color:var(--muted);
+  background:rgba(255,255,255,.32);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(255,255,255,.35)}
+.sbar input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:16px;color:var(--text)}
+.sbar input::placeholder{color:var(--muted)}
+.sbar input::-webkit-search-cancel-button{display:none}
+#qClear{width:22px;height:22px;border-radius:50%;font-size:.7rem;color:#fff;background:rgba(120,140,160,.6)}
+#qClear[hidden]{display:none}
+.ftoggle{position:relative;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--sky-700)}
+.ftoggle.on{background:rgba(255,255,255,.6)}
+.ftoggle.active::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--sky-500)}
+@media (prefers-color-scheme:dark){.sbar{background:rgba(14,30,44,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)} .ftoggle{color:var(--sky-300)} .ftoggle.on{background:rgba(255,255,255,.1)}}
+.filters{margin-top:8px;padding:10px;border-radius:18px;display:flex;flex-direction:column;gap:8px;
+  background:var(--lg-top);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  box-shadow:inset 0 1px 0 var(--lg-edge),inset 0 0 0 1px var(--lg-rim)}
+.filters[hidden]{display:none}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button,.fact button{flex:none;padding:7px 13px;border-radius:999px;font-size:.82rem;font-weight:700;color:var(--muted);
+  background:var(--lg-fill);box-shadow:inset 0 0 0 1px var(--lg-fill-rim);transition:background .2s,color .2s}
+.chips button.on{color:#fff;background:var(--sky-700);box-shadow:none}
+@media (prefers-color-scheme:dark){.chips button.on{background:var(--sky-600)}}
+#fCats{padding:4px 2px 2px;margin:0}
+#fCats button:not(.on) .ico{opacity:.5;filter:saturate(.5)}
+.fact{display:flex;justify-content:space-between}
+#fDone{color:var(--sky-700)}
+.fsum{margin:8px 6px 0;font-size:.82rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.fsum[hidden]{display:none}
+
+/* Intro */
+.intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;
+  background:radial-gradient(80vmax 80vmax at 20% 10%,rgba(56,189,248,.55),transparent 60%),
+             radial-gradient(70vmax 70vmax at 90% 80%,rgba(45,212,191,.4),transparent 60%),var(--bg)}
+.intro[hidden]{display:none}
+.intro-icon{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:27px;opacity:0;
+  box-shadow:0 20px 50px rgba(8,60,120,.35)}
+.intro .bub{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;font-size:1.7rem;opacity:0}
+
 /* Aviso */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);z-index:60;display:flex;align-items:center;gap:14px;
   padding:12px 12px 12px 18px;border-radius:20px;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);
@@ -408,6 +469,8 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 </head>
 <body>
 <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<!-- Intro al abrir la app desde cero: burbujas → icono → tarjeta del saldo -->
+<div class="intro" id="intro" aria-hidden="true"><img src="icon-512.png" alt="" class="intro-icon"></div>
 <main class="app">
   <header class="top">
     <div><small id="today"></small><h1>Mis cuentas</h1></div>
@@ -417,11 +480,12 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   <div class="pager" id="pager" aria-roledescription="carrusel">
   <div class="track" id="track">
     <div class="page" aria-label="Saldo">
-      <div class="card-wrap">
+      <div class="card-wrap" id="balWrap">
       <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
-      <section class="card">
-        <div class="bal-wrap"><div class="label">Saldo total</div>
+      <section class="card" id="balCard" role="button" tabindex="0" aria-label="Girar entre tarjeta y efectivo">
+        <div class="bal-wrap"><div class="label acc-label"><span id="accLabel">💳 Tarjeta</span><span class="flip-hint" aria-hidden="true">↻</span></div>
         <div class="balance" id="balance">0,00 €</div>
+        <div class="acc-total" id="accTotal"></div>
         <span class="delta" id="delta" aria-live="polite"></span></div>
         <div class="budget" id="budgetBar" hidden><div class="b-track"><i></i></div><small></small></div>
         <div class="stats">
@@ -451,6 +515,23 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   </div>
 
   <div class="section-title"><h2>Movimientos</h2><span id="count"></span></div>
+  <!-- Buscador tipo Safari: al tocarlo despliega los filtros -->
+  <div class="search" id="search">
+    <div class="sbar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Buscar movimientos" autocomplete="off" enterkeyhint="search" aria-label="Buscar movimientos">
+      <button id="qClear" aria-label="Borrar búsqueda" hidden>✕</button>
+      <button id="fToggle" class="ftoggle" aria-label="Filtros"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+    </div>
+    <div class="filters" id="filters" hidden>
+      <div class="chips" data-f="type"><button data-v="all" class="on">Todo</button><button data-v="out">Gastos</button><button data-v="in">Ingresos</button></div>
+      <div class="chips" data-f="acc"><button data-v="all" class="on">Todo</button><button data-v="card">💳 Tarjeta</button><button data-v="cash">💵 Efectivo</button></div>
+      <div class="cat-strip" id="fCats"></div>
+      <div class="chips" data-f="period"><button data-v="all" class="on">Siempre</button><button data-v="m0">Este mes</button><button data-v="m1">Mes pasado</button><button data-v="m3">3 meses</button><button data-v="y">Año</button></div>
+      <div class="fact"><button id="fReset">Limpiar filtros</button><button id="fDone">Listo</button></div>
+    </div>
+    <div class="fsum" id="fsum" hidden></div>
+  </div>
   <div id="movs"></div>
 </main>
 
@@ -489,6 +570,15 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 <section class="zoom" id="settings" role="dialog" aria-modal="true" aria-label="Ajustes" hidden>
   <div class="zoom-in">
     <div class="sheet-head"><h3>Ajustes</h3><button class="close" data-grow-close aria-label="Cerrar">✕</button></div>
+
+    <h4 class="grp-t">Saldos actuales</h4>
+    <div class="grp">
+      <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta</span>
+        <input class="mini" data-acc="card" inputmode="decimal" autocomplete="off"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo</span>
+        <input class="mini" data-acc="cash" inputmode="decimal" autocomplete="off"><em>€</em></label>
+    </div>
+    <p class="grp-note">Si no cuadra con tu banco o tu cartera, escribe lo que tienes de verdad y la app se ajusta.</p>
 
     <h4 class="grp-t">Copia de seguridad</h4>
     <div class="grp">
@@ -558,7 +648,16 @@ function save(){ try { localStorage.setItem(KEY, JSON.stringify(movs)); } catch 
 // Ajustes (presupuesto, última copia) y movimientos fijos: claves aparte, todo opcional
 const SKEY = 'miscuentas.settings.v1', RKEY = 'miscuentas.recurring.v1';
 const readJSON = (k, def) => { try { const r = localStorage.getItem(k); if (r) return JSON.parse(r); } catch {} return def; };
-let settings = {budget:null, catBudgets:{}, lastBackup:null, ...readJSON(SKEY, {})};
+let settings = {budget:null, catBudgets:{}, lastBackup:null, opening:null, lastAcc:'card', face:'card', ...readJSON(SKEY, {})};
+// Dos tipos de dinero. Los movimientos antiguos (sin acc) cuentan como tarjeta
+const ACCS = {card:{name:'Tarjeta', emoji:'💳', color:'#0EA5E9'}, cash:{name:'Efectivo', emoji:'💵', color:'#22C55E'}};
+const accOf = m => m.acc === 'cash' ? 'cash' : 'card';
+const signed = m => m.type === 'in' ? m.amount : -m.amount;
+const sumOf = list => list.reduce((t, m) => t + signed(m), 0);
+const opening = () => settings.opening || {card:0, cash:0};
+const accBalance = a => (opening()[a] || 0) + sumOf(movs.filter(m => accOf(m) === a));
+const accMonth = a => { const l = movs.filter(m => accOf(m) === a && sameMonth(m.date));
+  return {in: l.filter(m => m.type === 'in').reduce((t, m) => t + m.amount, 0), out: l.filter(m => m.type === 'out').reduce((t, m) => t + m.amount, 0)}; };
 let recurring = readJSON(RKEY, []);
 const saveSettings = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch {} };
 const saveRec = () => { try { localStorage.setItem(RKEY, JSON.stringify(recurring)); } catch {} };
@@ -597,21 +696,36 @@ function dayLabel(iso){
 }
 
 function render(tone, amount){
-  const total = movs.reduce((s,m) => s + (m.type === 'in' ? m.amount : -m.amount), 0);
-  const now = new Date();
-  const month = movs.filter(m => { const d = new Date(m.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
-  $('#monthIn').textContent  = eur0.format(month.filter(m => m.type === 'in').reduce((s,m) => s + m.amount, 0));
-  $('#monthOut').textContent = eur0.format(month.filter(m => m.type === 'out').reduce((s,m) => s + m.amount, 0));
-  countTo(total, tone, amount);
-  renderBudget(month.filter(m => m.type === 'out').reduce((s,m) => s + m.amount, 0));
+  // La tarjeta muestra la cuenta de la cara visible; debajo, el total de las dos
+  const face = settings.face === 'cash' ? 'cash' : 'card', mo = accMonth(face);
+  const total = opening().card + opening().cash + sumOf(movs);
+  $('#accLabel').textContent = `${ACCS[face].emoji} ${ACCS[face].name}`;
+  $('#accTotal').textContent = `Total ${eur.format(total)}`;
+  $('#balWrap').classList.toggle('cash', face === 'cash');
+  $('#monthIn').textContent  = eur0.format(mo.in);
+  $('#monthOut').textContent = eur0.format(mo.out);
+  countTo(accBalance(face), tone, amount);
+  renderBudget(movs.filter(m => m.type === 'out' && sameMonth(m.date)).reduce((s,m) => s + m.amount, 0));
   updateBackupUI();
   $('#count').textContent = movs.length ? `${movs.length} en total` : '';
 
   drawChart(page === 1 && !chartDrawn);
 
-  const sorted = [...movs].sort((a,b) => new Date(b.date) - new Date(a.date));
+  renderList();
+}
+
+function renderList(){
+  const sorted = movs.filter(passFilter).sort((a,b) => new Date(b.date) - new Date(a.date));
+  const on = filtering(), fsum = $('#fsum');
+  $('#fToggle').classList.toggle('active', !!(F.type !== 'all' || F.acc !== 'all' || F.cats.size || F.period !== 'all'));
+  fsum.hidden = !on;
+  if (on){ const t = sumOf(sorted);
+    fsum.textContent = `${sorted.length} ${sorted.length === 1 ? 'resultado' : 'resultados'} · ${t >= 0 ? '+' : '−'}${eur.format(Math.abs(t))}`; }
   if (!sorted.length){
-    $('#movs').innerHTML = `<div class="empty"><div>🪙</div>Aún no hay movimientos.<br>Pulsa <b>+</b> para añadir el primero.</div>`;
+    $('#movs').innerHTML = on
+      ? `<div class="empty"><div>🔍</div>Nada coincide con tu búsqueda.<br><button class="ghost" id="emptyReset" style="width:auto;padding:10px 18px">Limpiar filtros</button></div>`
+      : `<div class="empty"><div>🪙</div>Aún no hay movimientos.<br>Pulsa <b>+</b> para añadir el primero.</div>`;
+    $('#emptyReset')?.addEventListener('click', resetFilters);
     return;
   }
   // Agrupa por día conservando el orden: [{label, total, items}]
@@ -631,7 +745,7 @@ function render(tone, amount){
       const delay = firstRender ? Math.min(i++, 10) * 40 : 0;
       html += `<button class="mov${enter ? ' enter' : ''}" data-id="${esc(m.id)}" style="--c:${c.color}${delay ? `;animation-delay:${delay}ms` : ''}">
         <span class="ico bub">${c.emoji}</span>
-        <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}${m.rec ? '<span class="rec" title="Fijo mensual">↻</span>' : ''}</small></span>
+        <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}${m.rec ? '<span class="rec" title="Fijo mensual">↻</span>' : ''}<span class="acc" title="${ACCS[accOf(m)].name}">${ACCS[accOf(m)].emoji}</span></small></span>
         <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
     }
     html += '</div>';
@@ -919,6 +1033,7 @@ function openForm(type, preselectedCat, editing){
   const dateKey = d => d.toDateString();
   const today = new Date(), yest = new Date(Date.now() - 864e5);
   let when = editing ? new Date(editing.date) : new Date();
+  let acc = editing ? accOf(editing) : (settings.face === 'cash' ? 'cash' : 'card');
   const title = editing ? (isIn ? 'Editar ingreso' : 'Editar gasto') : (isIn ? 'Nuevo ingreso' : 'Nuevo gasto');
   openSheet(`
     <div class="sheet-head"><h3>${title}</h3><button class="close" data-close>✕</button></div>
@@ -930,6 +1045,8 @@ function openForm(type, preselectedCat, editing){
       value="${editing ? num2.format(editing.amount) : ''}"><span class="cur">€</span></label>
     <div class="dates" id="dates"><button data-d="0">Hoy</button><button data-d="1">Ayer</button>
       <button data-d="x" id="otherDay">📅 <span>Otro día</span><input type="date" id="pickDate" tabindex="-1"></button></div>
+    <div class="accs" id="accs">${['card', 'cash'].map(a => `<button data-acc="${a}" style="--c:${ACCS[a].color}"${a === acc ? ' class="on"' : ''}>
+      <span class="ico bub">${ACCS[a].emoji}</span><span class="pill">${ACCS[a].name}</span></button>`).join('')}</div>
     <input class="field" id="note" maxlength="40" value="${editing ? esc(editing.note || '') : ''}"
       placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
     ${editing ? '' : `<label class="rep"><span>↻ Repetir cada mes</span><input type="checkbox" class="sw" id="rep"></label>`}
@@ -955,6 +1072,11 @@ function openForm(type, preselectedCat, editing){
       return;
     }
     when = new Date(Date.now() - b.dataset.d * 864e5); paintDates();
+  });
+  $('#accs').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    acc = b.dataset.acc; navigator.vibrate?.(6);
+    $('#accs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
   });
   pick.addEventListener('change', () => { if (pick.value){ const [y, mo, d] = pick.value.split('-').map(Number); when = new Date(y, mo - 1, d); paintDates(); } });
   paintDates();
@@ -989,16 +1111,19 @@ function openForm(type, preselectedCat, editing){
     const value = Math.round(amount * 100) / 100, note = $('#note').value.trim();
     const before = spentBefore(c.id);
     let tone, delta, target;
+    // Se muestra la cuenta en la que se apunta, para ver cómo cambia su saldo
+    const oldAcc = editing ? accOf(editing) : acc;
+    settings.lastAcc = acc; settings.face = acc; saveSettings();
     if (editing){
-      const old = (editing.type === 'in' ? 1 : -1) * editing.amount, now = (isIn ? 1 : -1) * value;
-      Object.assign(editing, {amount:value, note, date:date.toISOString()});
+      const old = oldAcc === acc ? (editing.type === 'in' ? 1 : -1) * editing.amount : 0, now = (isIn ? 1 : -1) * value;
+      Object.assign(editing, {amount:value, note, date:date.toISOString(), acc});
       if (!isIn) editing.cat = c.id;
       delta = now - old; tone = delta > 0 ? 'in' : delta < 0 ? 'out' : undefined; target = editing;
     } else {
-      target = {id:Date.now(), type, amount:value, note, date:date.toISOString()};
+      target = {id:Date.now(), type, amount:value, note, date:date.toISOString(), acc};
       if (!isIn) target.cat = c.id;
       if ($('#rep')?.checked){
-        const r = {id:'r' + Date.now(), type, amount:value, note, day:date.getDate(), lastRun:ym(date), active:true};
+        const r = {id:'r' + Date.now(), type, amount:value, note, day:date.getDate(), lastRun:ym(date), active:true, acc};
         if (!isIn) r.cat = c.id;
         recurring.push(r); saveRec(); target.rec = r.id;
       }
@@ -1028,7 +1153,8 @@ $('#movs').addEventListener('click', e => {
     <div class="detail"><div class="ico bub" style="--c:${c.color}">${c.emoji}</div>
       <div class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</div>
       <p><b>${esc(m.note || c.name)}</b></p>
-      <p>${m.type === 'in' ? 'Ingreso' : c.name} · ${new Date(m.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</p></div>
+      <p>${m.type === 'in' ? 'Ingreso' : c.name} · ${ACCS[accOf(m)].emoji} ${ACCS[accOf(m)].name}</p>
+      <p>${new Date(m.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</p></div>
     <button class="ghost" id="edit">Editar</button>
     <button class="danger" id="del">Eliminar movimiento</button>`, '', c.color);
   $('#edit').addEventListener('click', () => openForm(m.type, m.cat, m));
@@ -1298,12 +1424,212 @@ function toast(msg, undo){
 }
 $('#undo').addEventListener('click', () => { toastUndo?.(); toastUndo = null; $('#toast').classList.remove('show'); });
 
+// ── Buscador y filtros (solo afectan a la lista) ──
+const F = {q:'', type:'all', acc:'all', cats:new Set(), period:'all'};
+const norm = v => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const filtering = () => !!(F.q || F.type !== 'all' || F.acc !== 'all' || F.cats.size || F.period !== 'all');
+function passFilter(m){
+  if (F.type !== 'all' && m.type !== F.type) return false;
+  if (F.acc !== 'all' && accOf(m) !== F.acc) return false;
+  if (F.cats.size && !(m.type === 'out' && F.cats.has(m.cat))) return false;
+  if (F.period !== 'all'){
+    const d = new Date(m.date), n = new Date(); let from, to = null;
+    if (F.period === 'm0') from = new Date(n.getFullYear(), n.getMonth(), 1);
+    else if (F.period === 'm1'){ from = new Date(n.getFullYear(), n.getMonth() - 1, 1); to = new Date(n.getFullYear(), n.getMonth(), 1); }
+    else if (F.period === 'm3') from = new Date(n.getFullYear(), n.getMonth() - 2, 1);
+    else from = new Date(n.getFullYear(), 0, 1);
+    if (d < from || (to && d >= to)) return false;
+  }
+  if (F.q && !norm(`${m.note} ${catOf(m).name} ${m.type === 'in' ? 'ingreso' : 'gasto'} ${ACCS[accOf(m)].name}`).includes(norm(F.q))) return false;
+  return true;
+}
+const filtersEl = $('#filters'), qEl = $('#q');
+$('#fCats').innerHTML = CATS.map(c => `<button data-cat="${c.id}" style="--c:${c.color}"><span class="ico bub">${c.emoji}</span>${c.name}</button>`).join('');
+function showFilters(open){
+  if (filtersEl.hidden !== open) return;
+  filtersEl.hidden = !open; $('#fToggle').classList.toggle('on', open);
+  if (open && !reduceMotion()) filtersEl.animate({opacity:[0, 1], transform:['translateY(-8px) scale(.98)', 'none']}, {duration:320, easing:'cubic-bezier(.32,.72,0,1)'});
+}
+qEl.addEventListener('focus', () => showFilters(true));
+qEl.addEventListener('input', () => { F.q = qEl.value.trim(); $('#qClear').hidden = !qEl.value; renderList(); });
+$('#qClear').addEventListener('click', () => { qEl.value = ''; F.q = ''; $('#qClear').hidden = true; renderList(); qEl.focus(); });
+$('#fToggle').addEventListener('click', () => showFilters(filtersEl.hidden));
+$('#fDone').addEventListener('click', () => { showFilters(false); qEl.blur(); });
+filtersEl.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const group = b.closest('.chips');
+  if (group){ F[group.dataset.f] = b.dataset.v; group.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); }
+  else if (b.dataset.cat){ F.cats.has(b.dataset.cat) ? F.cats.delete(b.dataset.cat) : F.cats.add(b.dataset.cat); b.classList.toggle('on'); }
+  else return;
+  navigator.vibrate?.(5); renderList();
+});
+function resetFilters(){
+  Object.assign(F, {q:'', type:'all', acc:'all', period:'all'}); F.cats.clear();
+  qEl.value = ''; $('#qClear').hidden = true;
+  filtersEl.querySelectorAll('.chips').forEach(g => g.querySelectorAll('button').forEach((x, i) => x.classList.toggle('on', i === 0)));
+  $('#fCats').querySelectorAll('button').forEach(x => x.classList.remove('on'));
+  renderList();
+}
+$('#fReset').addEventListener('click', resetFilters);
+
+// ── Girar la tarjeta: Tarjeta ↔ Efectivo, con Three.js ──
+// Durante el giro, Three.js pinta la tarjeta como un objeto 3D (las dos caras dibujadas en canvas, con
+// brillo de cristal y una luz que la cruza). Al terminar se quita y vuelve la tarjeta HTML nítida.
+const balCard = $('#balCard'), balWrap = $('#balWrap');
+let flip = null, threeP = null;
+const webglOK = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
+function setFace(f){ settings.face = f; saveSettings(); shownBalance = accBalance(f); render(); }
+function fadeFlip(to){
+  balCard.animate({opacity:[1, 0, 1], transform:['none', 'scale(.97)', 'none']}, {duration:320, easing:'ease-in-out'});
+  setTimeout(() => setFace(to), 160);
+}
+// Dibuja una cara de la tarjeta copiando la posición real de cada texto de la tarjeta HTML
+function faceTexture(THREE, f, w, h, dpr){
+  const c = document.createElement('canvas'); c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches, cr = balCard.getBoundingClientRect();
+  const at = el => { const r = el.getBoundingClientRect(); return {x:r.left - cr.left, y:r.top - cr.top, h:r.height}; };
+  const grad = g.createLinearGradient(0, 0, w, h);
+  const cols = f === 'card' ? (dark ? ['#16476E', '#0B2A44'] : ['#B4EEFC', '#7CC7F7']) : (dark ? ['#11493D', '#082C25'] : ['#C8F7DC', '#6EE7B7']);
+  grad.addColorStop(0, cols[0]); grad.addColorStop(1, cols[1]);
+  g.beginPath(); g.roundRect(0, 0, w, h, 28); g.fillStyle = grad; g.fill();
+  const sheen = g.createLinearGradient(0, 0, 0, h * .5); sheen.addColorStop(0, 'rgba(255,255,255,.45)'); sheen.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = sheen; g.fill();
+  g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.roundRect(.75, .75, w - 1.5, h - 1.5, 27.5); g.stroke();
+  const ink = dark ? '#EAF5FD' : '#0A2540', sub = dark ? '#B5D3E8' : '#24506F', font = '-apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+  g.textBaseline = 'top';
+  const lab = at($('#accLabel'));
+  g.fillStyle = sub; g.font = `700 13.6px ${font}`; g.fillText(`${ACCS[f].emoji} ${ACCS[f].name}`, lab.x, lab.y + 1);
+  const bal = at($('#balance')), fs = parseFloat(getComputedStyle($('#balance')).fontSize);
+  g.fillStyle = ink; g.font = `800 ${fs}px ${font}`; g.fillText(eur.format(accBalance(f)), bal.x, bal.y + fs * .06);
+  const tot = at($('#accTotal'));
+  g.fillStyle = sub; g.font = `700 12.8px ${font}`; g.fillText($('#accTotal').textContent, tot.x, tot.y + 1);
+  const mo = accMonth(f), s1 = at($('#monthIn')), s2 = at($('#monthOut'));
+  g.fillStyle = ink; g.font = `700 16.8px ${font}`; g.fillText(eur0.format(mo.in), s1.x, s1.y + 1); g.fillText(eur0.format(mo.out), s2.x, s2.y + 1);
+  const [l1, l2] = [...document.querySelectorAll('.stat span')].map(at);
+  g.fillStyle = sub; g.font = `700 12px ${font}`; g.fillText('↓ Ingresos del mes', l1.x, l1.y + 2); g.fillText('↑ Gastos del mes', l2.x, l2.y + 2);
+  if (f === 'card'){ g.fillStyle = '#F6C453'; g.beginPath(); g.roundRect(w - 62, 22, 38, 28, 7); g.fill();
+    g.strokeStyle = 'rgba(160,110,20,.6)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(w - 62, 36); g.lineTo(w - 24, 36); g.moveTo(w - 43, 22); g.lineTo(w - 43, 50); g.stroke(); }
+  else { g.font = `26px ${font}`; g.fillText('💵', w - 56, 20); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+async function flipCard(){
+  if (flip){ flip.target = flip.target > 1 ? 0 : Math.PI; return; }   // tocar a mitad de giro lo invierte
+  const from = settings.face === 'cash' ? 'cash' : 'card', to = from === 'card' ? 'cash' : 'card';
+  navigator.vibrate?.(8);
+  if (reduceMotion() || !webglOK) return fadeFlip(to);
+  let THREE;
+  try { THREE = await (threeP ||= import('./vendor/three.module.min.js')); } catch { threeP = null; return fadeFlip(to); }
+  if (flip) return;
+  const r = balCard.getBoundingClientRect(), M = 70, dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = r.width + 2 * M, H = r.height + 2 * M;
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(dpr); renderer.setSize(W, H); renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const cv = renderer.domElement; cv.className = 'flip3d';
+  Object.assign(cv.style, {left:`${r.left - M}px`, top:`${r.top - M}px`, width:`${W}px`, height:`${H}px`});
+  const scene = new THREE.Scene(), fov = 30, camZ = (H / 2) / Math.tan(fov * Math.PI / 360);
+  const camera = new THREE.PerspectiveCamera(fov, W / H, 1, camZ * 4); camera.position.z = camZ;
+  scene.add(new THREE.AmbientLight(0xffffff, 1.7));
+  const light = new THREE.DirectionalLight(0xffffff, 2.4); light.position.set(-400, 250, 500); scene.add(light);
+  const mat = tex => new THREE.MeshPhysicalMaterial({map:tex, transparent:true, roughness:.3, metalness:0, clearcoat:1, clearcoatRoughness:.12, iridescence:.35});
+  const geo = new THREE.PlaneGeometry(r.width, r.height);
+  const front = new THREE.Mesh(geo, mat(faceTexture(THREE, from, r.width, r.height, dpr)));
+  const back = new THREE.Mesh(geo, mat(faceTexture(THREE, to, r.width, r.height, dpr)));
+  front.position.z = 1.5; back.position.z = -1.5; back.rotation.y = Math.PI;
+  const group = new THREE.Group(); group.add(front, back); scene.add(group);
+  document.body.appendChild(cv);
+  renderer.render(scene, camera);
+  balWrap.classList.add('flipping');
+  flip = {target:Math.PI, a:0, v:0};
+  const K = 120, C = 2 * Math.sqrt(K) * .74;               // muelle con un pelín de rebote
+  let last = performance.now();
+  const finish = done => {
+    if (done){ settings.face = to; saveSettings(); }
+    shownBalance = accBalance(settings.face); render();
+    balWrap.classList.remove('flipping');
+    cv.remove(); geo.dispose();
+    [front, back].forEach(m => { m.material.map.dispose(); m.material.dispose(); });
+    renderer.dispose(); flip = null;
+  };
+  const step = now => {
+    const dt = Math.min(.032, (now - last) / 1000); last = now;
+    const f = flip; f.v += (-K * (f.a - f.target) - C * f.v) * dt; f.a += f.v * dt;
+    const lift = Math.sin(Math.min(Math.PI, Math.max(0, f.a)));
+    group.rotation.y = f.a; group.rotation.x = -lift * .1; group.position.z = lift * 80;
+    light.position.x = -400 + (f.a / Math.PI) * 800;        // la luz cruza la tarjeta al girar
+    renderer.render(scene, camera);
+    if (Math.abs(f.a - f.target) < .003 && Math.abs(f.v) < .03) return finish(f.target > 1);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+balCard.addEventListener('click', flipCard);
+balCard.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flipCard(); } });
+
+// ── Saldo inicial: la primera vez con datos, pregunta cuánto hay en tarjeta y en efectivo ──
+function askOpening(){
+  settings.opening = {card:0, cash:0}; saveSettings();          // solo se pregunta una vez
+  const cardNow = sumOf(movs.filter(m => accOf(m) === 'card'));
+  openSheet(`
+    <div class="sheet-head"><h3>¿Cuánto tienes ahora?</h3><button class="close" data-close>✕</button></div>
+    <p class="grp-note" style="margin:0 2px 10px">Ahora la app separa la tarjeta y el efectivo. Tus movimientos de antes se han guardado como tarjeta.</p>
+    <div class="grp">
+      <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta</span>
+        <input class="mini" id="opCard" inputmode="decimal" autocomplete="off" value="${num2.format(Math.max(0, cardNow))}"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo</span>
+        <input class="mini" id="opCash" inputmode="decimal" autocomplete="off" placeholder="0"><em>€</em></label>
+    </div>
+    <button class="primary" id="opSave">Guardar</button>`, '', '#0EA5E9');
+  formatAmountInput($('#opCard')); formatAmountInput($('#opCash'));
+  $('#opSave').addEventListener('click', () => {
+    const c = parseAmount($('#opCard').value) || 0, k = parseAmount($('#opCash').value) || 0;
+    settings.opening = {card: c - sumOf(movs.filter(m => accOf(m) === 'card')), cash: k - sumOf(movs.filter(m => accOf(m) === 'cash'))};
+    saveSettings(); closeSheet(); shownBalance = 0; render(); toast('✓ Saldos guardados · toca la tarjeta para girarla');
+  });
+}
+const maybeAskOpening = () => { if (localStorage.getItem(KEY) && !settings.opening) setTimeout(askOpening, 300); };
+
+// ── Intro al abrir la app desde cero: las burbujas caen, forman el icono y este se convierte en la tarjeta ──
+function playIntro(){
+  const ov = $('#intro'); let ended = false;
+  const end = () => {
+    if (ended) return; ended = true;
+    ov.getAnimations({subtree:true}).forEach(a => a.cancel()); ov.remove();
+    shownBalance = 0; render(); maybeAskOpening();
+  };
+  if (!ov) return maybeAskOpening();
+  if (reduceMotion() || /nointro/.test(location.search)){ ov.animate({opacity:[1, 0]}, {duration:300, fill:'forwards'}).finished.then(end); return; }
+  ov.addEventListener('pointerdown', end, {once:true});
+  const icon = ov.querySelector('.intro-icon'), ease = 'cubic-bezier(.32,.72,0,1)';
+  CATS.slice(0, 6).forEach((c, i) => {
+    const b = document.createElement('span'); b.className = 'bub'; b.style.setProperty('--c', c.color); b.textContent = c.emoji; ov.appendChild(b);
+    const a = i / 6 * Math.PI * 2 - Math.PI / 2, x = Math.cos(a) * 96, y = Math.sin(a) * 96, sx = (i % 2 ? 1 : -1) * (40 + i * 18);
+    b.animate([
+      {opacity:0, transform:`translate(${sx}px,-58vh) scale(.6)`},
+      {opacity:1, transform:`translate(${x}px,${y}px) scale(1)`, offset:.52},
+      {opacity:1, transform:`translate(${x * .9}px,${y * .9}px) scale(1)`, offset:.7},
+      {opacity:0, transform:'translate(0,0) scale(.3)'}
+    ], {duration:1150, delay:i * 60, easing:ease, fill:'forwards'});
+  });
+  icon.animate([{opacity:0, transform:'scale(.3)'}, {opacity:1, transform:'scale(1)'}], {duration:560, delay:860, easing:'cubic-bezier(.34,1.4,.64,1)', fill:'forwards'});
+  setTimeout(() => {
+    if (ended) return;
+    const r = balCard.getBoundingClientRect(), i = icon.getBoundingClientRect();
+    const sx = r.width / i.width, sy = r.height / i.height;
+    const tx = r.left + r.width / 2 - (i.left + i.width / 2), ty = r.top + r.height / 2 - (i.top + i.height / 2);
+    icon.animate([{transform:'scale(1)', opacity:1}, {transform:`translate(${tx}px,${ty}px) scale(${sx},${sy})`, opacity:.15}], {duration:600, easing:ease, fill:'forwards'});
+    ov.animate({opacity:[1, 0]}, {duration:600, easing:'ease-in', fill:'forwards'}).finished.then(end);
+  }, 1500);
+}
+
 // ── Ajustes ──
 const settingsPanel = $('#settings'), gear = $('#gear');
 gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, renderSettings));
 
 function renderSettings(){
   updateBackupUI();
+  settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
   $('#catBudgets').innerHTML = CATS.map(c => `
@@ -1321,9 +1647,17 @@ function renderSettings(){
     : `<div class="row"><span class="ico bub" style="--c:#94A3B8">↻</span><span>Aún no tienes movimientos fijos</span></div>`;
 }
 formatAmountInput($('#budgetTotal'));
+settingsPanel.querySelectorAll('[data-acc]').forEach(formatAmountInput);
+// Ajustar saldo: se recalcula el saldo inicial para que la cuenta muestre lo escrito
+settingsPanel.addEventListener('change', e => {
+  const a = e.target.dataset.acc; if (!a) return;
+  const v = parseAmount(e.target.value); if (!(v >= 0)) return;
+  settings.opening = {...opening(), [a]: v - sumOf(movs.filter(m => accOf(m) === a))};
+  saveSettings(); shownBalance = accBalance(settings.face); render(); toast(`${ACCS[a].emoji} Saldo de ${ACCS[a].name.toLowerCase()} ajustado`);
+});
 // Guarda al escribir: vacío = sin límite
 settingsPanel.addEventListener('input', e => {
-  const el = e.target; if (!el.classList.contains('mini')) return;
+  const el = e.target; if (!el.classList.contains('mini') || el.dataset.acc) return;
   const v = parseAmount(el.value), ok = v > 0 ? Math.round(v * 100) / 100 : null;
   if (el.id === 'budgetTotal') settings.budget = ok;
   else if (ok) settings.catBudgets[el.dataset.cat] = ok; else delete settings.catBudgets[el.dataset.cat];
@@ -1356,7 +1690,7 @@ function updateBackupUI(){
     : `Última copia: ${days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} días`}${stale ? ' · te recomiendo hacer otra' : ''}.`;
 }
 async function exportBackup(){
-  const data = {app:'mis-cuentas', version:1, exportedAt:new Date().toISOString(), movs, settings:{budget:settings.budget, catBudgets:settings.catBudgets}, recurring};
+  const data = {app:'mis-cuentas', version:1, exportedAt:new Date().toISOString(), movs, settings:{budget:settings.budget, catBudgets:settings.catBudgets, opening:settings.opening}, recurring};
   const name = `mis-cuentas-${new Date().toLocaleDateString('sv-SE')}.json`;
   const blob = new Blob([JSON.stringify(data, null, 1)], {type:'application/json'});
   const file = new File([blob], name, {type:'application/json'});
@@ -1383,6 +1717,7 @@ function cleanMov(m){
   const out = {id:+m.id, type:m.type, amount:Math.round(m.amount * 100) / 100, note:cleanNote(m.note), date:new Date(m.date).toISOString()};
   if (m.type === 'out') out.cat = okCat(m.cat) ? m.cat : 'otros';
   if (typeof m.rec === 'string' && /^r\d+$/.test(m.rec)) out.rec = m.rec;
+  if (m.acc === 'cash' || m.acc === 'card') out.acc = m.acc;
   return out;
 }
 function cleanRec(r){
@@ -1390,8 +1725,11 @@ function cleanRec(r){
       || !Number.isInteger(r.day) || r.day < 1 || r.day > 31 || typeof r.lastRun !== 'string' || !/^\d{4}-\d{2}$/.test(r.lastRun)) return null;
   const out = {id:r.id, type:r.type, amount:Math.round(r.amount * 100) / 100, note:cleanNote(r.note), day:r.day, lastRun:r.lastRun, active:r.active !== false};
   if (r.type === 'out') out.cat = okCat(r.cat) ? r.cat : 'otros';
+  if (r.acc === 'cash' || r.acc === 'card') out.acc = r.acc;
   return out;
 }
+const okNum = v => typeof v === 'number' && isFinite(v) && Math.abs(v) < 1e9;
+const cleanOpening = o => o && okNum(o.card) && okNum(o.cash) ? {card:o.card, cash:o.cash} : null;
 function cleanBudgets(b){
   const out = {};
   if (b && typeof b === 'object') for (const c of CATS) if (okAmount(b[c.id])) out[c.id] = b[c.id];
@@ -1412,7 +1750,8 @@ $('#importFile').addEventListener('change', async e => {
   const apply = st => { movs = st.movs; settings = st.settings; recurring = st.recurring;
     save(); saveSettings(); saveRec(); firstRender = true; chartDrawn = false; render(); renderSettings(); };
   apply({movs:clean, recurring:Array.isArray(d.recurring) ? d.recurring.map(cleanRec).filter(Boolean) : [],
-         settings:{...settings, budget:okAmount(d.settings?.budget) ? d.settings.budget : null, catBudgets:cleanBudgets(d.settings?.catBudgets)}});
+         settings:{...settings, budget:okAmount(d.settings?.budget) ? d.settings.budget : null, catBudgets:cleanBudgets(d.settings?.catBudgets),
+                   opening:cleanOpening(d.settings?.opening) || settings.opening}});
   navigator.vibrate?.(12);
   toast(`Copia importada · ${movs.length} movimientos`, () => apply(prev));
 });
@@ -1430,6 +1769,7 @@ function runRecurring(){
       if (when > now) break;
       const m = {id:Date.now() + added.length, type:r.type, amount:r.amount, note:r.note, date:when.toISOString(), rec:r.id};
       if (r.cat) m.cat = r.cat;
+      if (r.acc) m.acc = r.acc;
       movs.push(m); added.push(m);
       r.lastRun = `${y}-${String(mo).padStart(2, '0')}`;
     }
@@ -1448,6 +1788,7 @@ $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
 runRecurring();
 render();
 updateBackupUI();
+playIntro();
 // El abanico se calcula en un momento libre, para que al pulsar Gasto ya esté listo
 (window.requestIdleCallback || setTimeout)(() => layoutCluster());
 
