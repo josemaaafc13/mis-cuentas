@@ -288,6 +288,18 @@ body.cluster-open .fab svg{transform:rotate(135deg)}
 .zoom::before{content:"";position:absolute;inset:0 0 auto;height:160px;pointer-events:none;
   background:radial-gradient(120% 90% at 30% 0%,var(--lg-sheen),transparent 70%)}
 .zoom-in{position:relative;height:100%;overflow:auto;padding:18px 18px 24px;overscroll-behavior:contain}
+/* Subpantallas de Ajustes: entran desde la derecha encima de la raíz, como en los Ajustes del iPhone */
+.subpage{position:absolute;inset:0;z-index:2;overflow:auto;touch-action:pan-y;padding:18px 18px 24px;overscroll-behavior:contain;will-change:transform;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 97%,transparent),color-mix(in srgb,var(--bg) 94%,transparent));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  box-shadow:-14px 0 34px rgba(6,40,70,.14)}
+.subpage[hidden]{display:none}
+.sub-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:0 -6px 12px}
+.sub-head h3{margin:0;font-size:1.08rem;letter-spacing:-.015em}
+.back{justify-self:start;padding:8px 6px;font-weight:600;font-size:1rem;color:var(--sky-700)}
+.back:active{opacity:.5}
+#setRoot{will-change:transform}
+@media (prefers-color-scheme:dark){.subpage{box-shadow:-14px 0 34px rgba(0,0,0,.4)}}
+@media (prefers-reduced-transparency:reduce){.subpage{background:var(--bg)}}
 body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:3px;margin:8px 0 6px;border-radius:14px;
   background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim)}
@@ -560,16 +572,6 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .wdots i.on{opacity:.85;transform:scale(1.15)}
 .wskip{display:block;margin:6px auto 0;padding:8px 12px;color:var(--muted);font-weight:700;font-size:.9rem}
 
-/* Bloqueo: cristal grueso que tapa todo (también en la vista de apps recientes) */
-.lock{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;
-  background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(40px) saturate(160%);-webkit-backdrop-filter:blur(40px) saturate(160%)}
-.lock[hidden]{display:none}
-.lock-in{width:100%;max-width:320px;text-align:center}
-.lock-icon{width:96px;height:96px;border-radius:22px;box-shadow:0 12px 30px rgba(14,120,200,.3)}
-.lock h2{margin:16px 0 4px;font-size:1.5rem;letter-spacing:-.02em}
-.lock p{margin:0 0 26px;color:var(--muted);font-weight:600}
-.lock-reset{margin-top:14px;padding:8px;color:var(--sky-700);font-weight:700;font-size:.88rem}
-@media (prefers-reduced-transparency:reduce){.lock{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}}
 
 @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes leave{to{opacity:0;transform:translateX(-30%) scale(.95)}}
@@ -691,9 +693,9 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
   </div>
 </section>
 
-<!-- Ajustes: nace del botón ⚙ -->
+<!-- Ajustes: nace del botón ⚙. Lo de uso diario a la vista; el resto en subpantallas (como los Ajustes del iPhone) -->
 <section class="zoom" id="settings" role="dialog" aria-modal="true" aria-label="Ajustes" hidden>
-  <div class="zoom-in">
+  <div class="zoom-in" id="setRoot">
     <div class="sheet-head"><h3>Ajustes</h3><button class="close" data-grow-close aria-label="Cerrar">✕</button></div>
 
     <h4 class="grp-t">Saldos actuales</h4>
@@ -705,15 +707,55 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     </div>
     <p class="grp-note">Si no cuadra con tu banco o tu cartera, escribe lo que tienes de verdad y la app se ajusta.</p>
 
-    <h4 class="grp-t">Copia de seguridad</h4>
+    <h4 class="grp-t">Presupuesto mensual</h4>
+    <div class="grp">
+      <label class="row"><span class="ico bub" style="--c:#0369A1">🎯</span><span>Total al mes</span>
+        <input class="mini" id="budgetTotal" inputmode="decimal" placeholder="Sin límite" autocomplete="off"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta al mes</span>
+        <input class="mini" data-accb="card" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
+      <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo al mes</span>
+        <input class="mini" data-accb="cash" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
+      <button class="row" data-push="subCats"><span class="ico bub" style="--c:#FF9F0A">🗂</span><span>Por categoría<small id="sumCats"></small></span><i>›</i></button>
+    </div>
+
+    <h4 class="grp-t">Tus datos</h4>
+    <div class="grp">
+      <button class="row" data-push="subRecs"><span class="ico bub" style="--c:#5E5CE6">↻</span><span>Movimientos fijos<small id="sumRecs"></small></span><i>›</i></button>
+      <button class="row" data-push="subBackup"><span class="ico bub" style="--c:#0EA5E9">💾</span><span>Copia de seguridad<small id="sumBackup"></small></span><i>›</i></button>
+      <button class="row" data-push="subPay" id="payRow" hidden><span class="ico bub" style="--c:#22C55E">📲</span><span>Pagos de Apple Pay<small id="sumPay"></small></span><i>›</i></button>
+    </div>
+    <p class="grp-note warn" id="backupWarn" hidden></p>
+
+    <h4 class="grp-t">Ayuda</h4>
+    <div class="grp">
+      <button class="row" id="tourBtn"><span class="ico bub" style="--c:#14B8A6">🧭</span><span>Ver tutorial</span><i>›</i></button>
+    </div>
+  </div>
+
+  <div class="subpage" id="subCats" hidden>
+    <div class="sub-head"><button class="back" data-pop>‹ Ajustes</button><h3>Por categoría</h3><span></span></div>
+    <p class="grp-note" style="margin-top:0">Límites al mes (opcionales). La barra se pone naranja al 80 % y roja al pasarte.</p>
+    <div class="grp" id="catBudgets"></div>
+  </div>
+
+  <div class="subpage" id="subRecs" hidden>
+    <div class="sub-head"><button class="back" data-pop>‹ Ajustes</button><h3>Fijos</h3><span></span></div>
+    <div class="grp" id="recList"></div>
+    <p class="grp-note">Para crear uno, activa «Repetir cada mes» al añadir un gasto o un ingreso. Se apuntan solos el mismo día de cada mes.</p>
+  </div>
+
+  <div class="subpage" id="subBackup" hidden>
+    <div class="sub-head"><button class="back" data-pop>‹ Ajustes</button><h3>Copia</h3><span></span></div>
     <div class="grp">
       <button class="row" id="exportBtn"><span class="ico bub" style="--c:#0EA5E9">⬆️</span><span>Exportar copia</span><i>›</i></button>
       <button class="row" id="importBtn"><span class="ico bub" style="--c:#5E5CE6">⬇️</span><span>Importar copia</span><i>›</i></button>
     </div>
     <input type="file" id="importFile" accept=".json,application/json" hidden>
     <p class="grp-note" id="backupNote"></p>
+  </div>
 
-    <h4 class="grp-t">Pagos de Apple Pay</h4>
+  <div class="subpage" id="subPay" hidden>
+    <div class="sub-head"><button class="back" data-pop>‹ Ajustes</button><h3>Apple Pay</h3><span></span></div>
     <div class="grp">
       <label class="row"><span class="ico bub" style="--c:#22C55E">⚡️</span><span>Recogida automática<small id="inboxState">Los pagos llegan solos al abrir la app</small></span>
         <input type="checkbox" class="sw" id="inboxOn" aria-label="Recogida automática"></label>
@@ -724,34 +766,6 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     </div>
     <input type="file" id="payFile" accept=".txt,.json,text/plain,application/json" hidden>
     <p class="grp-note" id="payNote">Con un atajo del iPhone, cada pago con Apple Pay se guarda y aquí lo añades con dos toques.</p>
-
-    <h4 class="grp-t">Presupuesto mensual</h4>
-    <div class="grp">
-      <label class="row"><span class="ico bub" style="--c:#0369A1">🎯</span><span>Total al mes</span>
-        <input class="mini" id="budgetTotal" inputmode="decimal" placeholder="Sin límite" autocomplete="off"><em>€</em></label>
-      <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta al mes</span>
-        <input class="mini" data-accb="card" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
-      <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo al mes</span>
-        <input class="mini" data-accb="cash" inputmode="decimal" placeholder="—" autocomplete="off"><em>€</em></label>
-    </div>
-    <p class="grp-note">Límites por categoría (opcionales). La barra se pone naranja al 80 % y roja al pasarte.</p>
-    <div class="grp" id="catBudgets"></div>
-
-    <h4 class="grp-t">Movimientos fijos</h4>
-    <div class="grp" id="recList"></div>
-    <p class="grp-note">Para crear uno, activa «Repetir cada mes» al añadir un gasto o un ingreso. Se apuntan solos el mismo día de cada mes.</p>
-
-    <h4 class="grp-t">Privacidad</h4>
-    <div class="grp">
-      <label class="row"><span class="ico bub" style="--c:#34C759">🔒</span><span>Bloqueo con Face ID<small id="lockState">Pide Face ID al abrir la app</small></span>
-        <input type="checkbox" class="sw" id="lockOn" aria-label="Bloqueo con Face ID"></label>
-    </div>
-    <p class="grp-note">Tapa la app hasta que la desbloqueas con tu cara o el código del iPhone. Tus datos siguen solo en este iPhone.</p>
-
-    <h4 class="grp-t">Ayuda</h4>
-    <div class="grp">
-      <button class="row" id="tourBtn"><span class="ico bub" style="--c:#14B8A6">🧭</span><span>Ver tutorial</span><i>›</i></button>
-    </div>
   </div>
 </section>
 
@@ -763,16 +777,6 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <div class="coach-foot"><span id="coachStep"></span><button id="coachSkip">Saltar</button></div></div>
 </div>
 
-<!-- Bloqueo con Face ID: cortina de cristal hasta que el iPhone confirma que eres tú -->
-<div class="lock" id="lock" hidden>
-  <div class="lock-in">
-    <img src="icon-192.png" alt="" class="lock-icon">
-    <h2>Mis Cuentas</h2>
-    <p id="lockMsg">Bloqueada</p>
-    <button class="primary" id="lockBtn">Desbloquear con Face ID</button>
-    <button class="lock-reset" id="lockReset" hidden>¿No funciona? Configurar de nuevo</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="undo">Deshacer</button></div>
 
@@ -1847,10 +1851,82 @@ function playIntro(){
 
 // ── Ajustes ──
 const settingsPanel = $('#settings'), gear = $('#gear');
-gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, renderSettings));
+gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, () => { popSub(false); renderSettings(); }));
+
+// Apple Pay solo existe en el móvil del dueño: el que ya lo usó (o abrió una vez el enlace …/#propietario)
+const isOwner = () => !!(settings.owner || settings.inboxKey || settings.lastPayImport || settings.payImported?.length);
+// Resumen pequeño bajo cada fila que lleva a una subpantalla, para no tener que entrar a mirar
+function updateSummaries(){
+  const n = Object.keys(settings.catBudgets || {}).length, act = recurring.filter(r => r.active).length;
+  $('#sumCats').textContent = n ? `${n} ${n === 1 ? 'límite' : 'límites'}` : 'Sin límites';
+  $('#sumRecs').textContent = !recurring.length ? 'Ninguno' : `${act} ${act === 1 ? 'activo' : 'activos'}${recurring.length > act ? ` · ${recurring.length - act} en pausa` : ''}`;
+  const last = settings.lastBackup && new Date(settings.lastBackup), days = last ? Math.floor((Date.now() - last) / 864e5) : null;
+  $('#sumBackup').textContent = !last ? 'Aún sin copia' : `Última: ${days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} días`}`;
+  $('#sumPay').textContent = settings.inboxOn ? 'Recogida automática activada' : 'Importar a mano';
+  $('#payRow').hidden = !isOwner();
+}
+
+// ── Subpantallas de Ajustes (push/pop como en el iPhone) ──
+// Entra desde la derecha y la raíz se aparta un 30 % y se apaga un poco. Las transiciones CSS parten del
+// valor actual, así que se puede volver a mitad de camino; desde el borde izquierdo se arrastra 1:1.
+const setRoot = $('#setRoot');
+let subOpen = null, subTimer = 0;
+function subPos(sub, x, animate){                               // x: 0 = abierta · ancho = fuera
+  const W = settingsPanel.clientWidth, k = 1 - Math.min(1, Math.max(0, x / W));
+  const t = animate ? 'transform .42s var(--ease-ios),opacity .42s var(--ease-ios)' : 'none';
+  sub.style.transition = setRoot.style.transition = t;
+  sub.style.transform = `translateX(${x}px)`;
+  setRoot.style.transform = `translateX(${-k * W * .3}px)`;
+  setRoot.style.opacity = String(1 - k * .7);
+}
+function pushSub(id){
+  const sub = $('#' + id); if (!sub || subOpen) return;
+  subOpen = sub; clearTimeout(subTimer);
+  sub.hidden = false; sub.scrollTop = 0; navigator.vibrate?.(6);
+  if (reduceMotion()){ sub.animate({opacity:[0, 1]}, {duration:180}); return; }
+  subPos(sub, settingsPanel.clientWidth, false); void sub.offsetWidth;
+  subPos(sub, 0, true);
+}
+function popSub(animate = true){
+  const sub = subOpen; if (!sub) return;
+  subOpen = null; document.activeElement?.blur(); updateSummaries();
+  const done = () => { sub.hidden = true; sub.style.cssText = ''; setRoot.style.cssText = ''; };
+  if (!animate || reduceMotion()){ done(); return; }
+  subPos(sub, settingsPanel.clientWidth, true);
+  subTimer = setTimeout(done, 440);
+}
+settingsPanel.addEventListener('click', e => {
+  const p = e.target.closest('[data-push]'); if (p){ pushSub(p.dataset.push); return; }
+  if (e.target.closest('[data-pop]')) popSub();
+});
+// Deslizar desde el borde izquierdo para volver, siguiendo al dedo y decidiendo por velocidad
+(() => {
+  let x0 = 0, y0 = 0, dx = 0, v = 0, lastX = 0, lastT = 0, dir = null, id = null, start = 0;
+  settingsPanel.addEventListener('pointerdown', e => {
+    if (!subOpen || e.clientX - settingsPanel.getBoundingClientRect().left > 30) return;
+    id = e.pointerId; dir = null; x0 = lastX = e.clientX; y0 = e.clientY; lastT = performance.now(); v = 0;
+    start = new DOMMatrixReadOnly(getComputedStyle(subOpen).transform).m41;   // por si aún se movía
+  });
+  settingsPanel.addEventListener('pointermove', e => {
+    if (e.pointerId !== id || !subOpen) return;
+    const ddx = e.clientX - x0, ddy = e.clientY - y0;
+    if (!dir){ if (Math.abs(ddx) < 10 && Math.abs(ddy) < 10) return;
+      dir = Math.abs(ddx) > Math.abs(ddy) ? 'h' : 'v'; if (dir === 'v'){ id = null; return; }
+      settingsPanel.setPointerCapture(e.pointerId); }
+    const now = performance.now(); v = (e.clientX - lastX) / Math.max(1, now - lastT) * 1000; lastX = e.clientX; lastT = now;
+    dx = Math.max(0, start + ddx); subPos(subOpen, dx, false);
+  });
+  const end = e => {
+    if (e.pointerId !== id) return; id = null;
+    if (dir !== 'h' || !subOpen) return;
+    if (performance.now() - lastT > 80) v = 0;
+    if (dx > settingsPanel.clientWidth / 2 || v > 500) popSub(); else subPos(subOpen, 0, true);
+  };
+  settingsPanel.addEventListener('pointerup', end); settingsPanel.addEventListener('pointercancel', end);
+})();
 
 function renderSettings(){
-  updateBackupUI(); updatePayNote(); updateInboxUI(); updateLockUI();
+  updateBackupUI(); updatePayNote(); updateInboxUI(); updateSummaries();
   settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
@@ -1912,6 +1988,9 @@ function updateBackupUI(){
   note.classList.toggle('warn', stale);
   note.textContent = !last ? 'Aún no has hecho ninguna copia. Tus datos solo están en este móvil: te recomiendo guardar una en Archivos o iCloud.'
     : `Última copia: ${days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} días`}${stale ? ' · te recomiendo hacer otra' : ''}.`;
+  // En la raíz de Ajustes solo se ve el aviso cuando hace falta una copia
+  const w = $('#backupWarn'); w.hidden = !stale;
+  w.textContent = !last ? 'Tus datos solo están en este móvil: haz una copia en Copia de seguridad.' : `Tu última copia es de hace ${days} días: te recomiendo hacer otra.`;
 }
 async function exportBackup(){
   const data = {app:'mis-cuentas', version:1, exportedAt:new Date().toISOString(), movs, settings:{budget:settings.budget, catBudgets:settings.catBudgets, accBudgets:settings.accBudgets, opening:settings.opening}, recurring};
@@ -2348,71 +2427,6 @@ $('#coachSkip').addEventListener('click', endTour);
 addEventListener('resize', () => { if (tour) layoutStep(TOUR[tour.i], false); });
 $('#tourBtn').addEventListener('click', () => fromSettings(startTour));
 
-// ── Bloqueo con Face ID (opcional): una llave de acceso del propio iPhone, sin servidor ──
-// Es una cortina de privacidad: el iPhone confirma que eres tú (Face ID o el código) y la app se abre.
-const lockEl = $('#lock');
-const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const canLock = () => !!(window.PublicKeyCredential && navigator.credentials?.create);
-const rnd = n => crypto.getRandomValues(new Uint8Array(n));
-async function lockCreate(){
-  const cred = await navigator.credentials.create({publicKey:{
-    challenge:rnd(32), rp:{name:'Mis Cuentas'},
-    user:{id:rnd(16), name:'Mis Cuentas', displayName:'Mis Cuentas'},
-    pubKeyCredParams:[{type:'public-key', alg:-7}, {type:'public-key', alg:-257}],
-    authenticatorSelection:{authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred'},
-    attestation:'none', timeout:60000}});
-  settings.lockCred = b64u(cred.rawId); saveSettings();
-}
-const lockVerify = () => navigator.credentials.get({publicKey:{challenge:rnd(32), timeout:60000, userVerification:'required',
-  allowCredentials:[{type:'public-key', id:unb64u(settings.lockCred)}]}});
-let hiddenAt = 0;
-function showLock(){
-  if (!settings.lockCred || !lockEl.hidden) return;
-  lockEl.hidden = false; $('main').inert = true;
-  $('#lockMsg').textContent = 'Bloqueada'; $('#lockReset').hidden = true;
-}
-function hideLock(){
-  if (lockEl.hidden) return;
-  $('main').inert = false;
-  if (reduceMotion()){ lockEl.hidden = true; return; }
-  // Se deshace como un material: el contenido crece un poco y el cristal se desvanece
-  lockEl.querySelector('.lock-in').animate({transform:['none', 'scale(1.06)'], opacity:[1, 0]}, {duration:320, easing:'cubic-bezier(.32,.72,0,1)'});
-  lockEl.animate({opacity:[1, 0]}, {duration:380, easing:'ease-in'}).finished.then(() => lockEl.hidden = true);
-}
-$('#lockBtn').addEventListener('click', async () => {
-  try { await lockVerify(); navigator.vibrate?.(10); hideLock(); }
-  catch { $('#lockMsg').textContent = 'No se ha podido comprobar. Inténtalo otra vez.'; $('#lockReset').hidden = false; }
-});
-// Si la llave se borró del iPhone: crear otra también pide Face ID o el código, así que nadie más puede saltársela
-$('#lockReset').addEventListener('click', async () => {
-  try { await lockCreate(); hideLock(); toast('🔒 Bloqueo configurado de nuevo'); }
-  catch { $('#lockMsg').textContent = 'No se ha podido configurar. Inténtalo otra vez.'; }
-});
-document.addEventListener('visibilitychange', () => {
-  if (!settings.lockCred) return;
-  // Al salir se tapa ya, para que la vista de apps recientes no enseñe el saldo
-  if (document.hidden){ hiddenAt = Date.now(); showLock(); }
-  else if (Date.now() - hiddenAt < 60000) hideLock();           // vuelta rápida (menos de 1 minuto): sin pedir nada
-});
-function updateLockUI(){
-  $('#lockOn').checked = !!settings.lockCred;
-  $('#lockState').textContent = settings.lockCred ? 'Activado · pide Face ID al abrir la app' : canLock() ? 'Pide Face ID al abrir la app' : 'Este navegador no lo permite';
-}
-$('#lockOn').addEventListener('change', async e => {
-  const on = e.target.checked;
-  try {
-    if (on){
-      if (!canLock()) throw new Error('nope');
-      await lockCreate(); toast('🔒 Bloqueo activado');
-    } else {
-      await lockVerify();                                         // para quitarlo también hay que ser tú
-      delete settings.lockCred; saveSettings(); toast('Bloqueo desactivado');
-    }
-  } catch { toast(on ? 'No se ha activado el bloqueo' : 'No se ha quitado el bloqueo'); }
-  updateLockUI();
-});
-
 // ── Fijos: se apuntan solos el mismo día de cada mes (y los meses pendientes si la app no se abrió) ──
 function runRecurring(){
   const now = new Date(), added = [];
@@ -2443,7 +2457,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) retur
 const hoy = new Date().toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
 settings.face = 'all';   // cada arranque desde cero empieza en la cara Total
-showLock();              // con Face ID activado, la app abre tapada
+delete settings.lockCred;   // el bloqueo con Face ID se quitó en v18
+// Enlace de reserva para el dueño (p. ej. al cambiar de iPhone): …/mis-cuentas/#propietario muestra Apple Pay en Ajustes
+if (location.hash === "#propietario"){
+  settings.owner = true; saveSettings(); history.replaceState(null, "", location.pathname + location.search);
+  setTimeout(() => toast("📲 Apple Pay activado en este iPhone · ⚙ → Pagos de Apple Pay"), 1600);
+}
 runRecurring();
 render();
 updateBackupUI();
