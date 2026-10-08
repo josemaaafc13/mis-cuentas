@@ -389,6 +389,17 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .card-wrap .card{transition:background-color .8s var(--ease-ios)}
 .card-wrap.cash .blob.b1{background:#34D399} .card-wrap.cash .blob.b2{background:#A7F3D0} .card-wrap.cash .blob.b4{background:#2DD4BF}
 .card-wrap.cash .card{background:rgba(220,252,231,.28)}
+/* Cara Total: «aurora» que mezcla el azul de la tarjeta y el verde del efectivo, con un toque lavanda */
+.card-wrap.all .blob.b1{background:#38BDF8} .card-wrap.all .blob.b2{background:#6EE7B7}
+.card-wrap.all .blob.b3{background:#2DD4BF} .card-wrap.all .blob.b4{background:#A5B4FC}
+.card-wrap.all .card{background:rgba(204,251,241,.26)}
+/* Puntitos: en qué cara estás (Total, Tarjeta, Efectivo) */
+.face-dots{display:flex;gap:4px;margin-left:2px}
+.face-dots i{width:16px;height:6px;border-radius:3px;background:currentColor;opacity:.25;transform:scaleX(.375);
+  transition:transform .35s var(--ease-ios),opacity .35s,background-color .35s}
+.face-dots{gap:0}
+.face-dots i.on{transform:none;opacity:1}
+.face-dots i:nth-child(1).on{background:#0D9488} .face-dots i:nth-child(2).on{background:#0284C7} .face-dots i:nth-child(3).on{background:#16A34A}
 .sheen{position:absolute;top:-30%;bottom:-30%;left:0;width:40%;pointer-events:none;opacity:0;z-index:2;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-120%) skewX(-14deg)}
 /* Odómetro: cada dígito es una ventana de una línea con una columna de números que sube */
@@ -397,8 +408,10 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .odo-c i{display:block;font-style:normal;height:1.05em;line-height:1.05em}
 .odo-s{display:inline-block;height:1.05em;line-height:1.05em;vertical-align:top;white-space:pre}
 .zoom.cash{background:linear-gradient(180deg,color-mix(in srgb,#22C55E 18%,var(--lg-top)),var(--lg-bottom) 70%)}
+.zoom.all{background:linear-gradient(180deg,color-mix(in srgb,#14B8A6 18%,var(--lg-top)),var(--lg-bottom) 70%)}
 @media (prefers-color-scheme:dark){.acc-total{color:#B5D3E8} .flip-hint{background:rgba(255,255,255,.1);box-shadow:none}
-  .card-wrap.cash .card{background:rgba(6,40,30,.32)}}
+  .card-wrap.cash .card{background:rgba(6,40,30,.32)} .card-wrap.all .card{background:rgba(4,38,40,.32)}
+  .face-dots i:nth-child(1).on{background:#2DD4BF} .face-dots i:nth-child(2).on{background:#38BDF8} .face-dots i:nth-child(3).on{background:#4ADE80}}
 
 /* Selector de cuenta al añadir */
 .accs{display:flex;justify-content:center;gap:22px;margin:12px 0 2px}
@@ -509,8 +522,8 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <div class="page" aria-label="Saldo">
       <div class="card-wrap" id="balWrap">
       <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
-      <section class="card" id="balCard" role="button" tabindex="0" aria-label="Cambiar entre tarjeta y efectivo"><i class="sheen" aria-hidden="true"></i>
-        <div class="bal-wrap"><div class="label acc-label"><span id="accLabel">💳 Tarjeta</span><span class="flip-hint" aria-hidden="true">↻</span></div>
+      <section class="card" id="balCard" role="button" tabindex="0" aria-label="Cambiar de cuenta: total, tarjeta o efectivo"><i class="sheen" aria-hidden="true"></i>
+        <div class="bal-wrap"><div class="label acc-label"><span id="accLabel">💳 Tarjeta</span><span class="flip-hint" aria-hidden="true">↻</span><span class="face-dots" id="faceDots" aria-hidden="true"><i class="on"></i><i></i><i></i></span></div>
         <div class="balance" id="balance">0,00 €</div>
         <div class="acc-total" id="accTotal"></div>
         <span class="delta" id="delta" aria-live="polite"></span></div>
@@ -695,12 +708,19 @@ let settings = {budget:null, catBudgets:{}, accBudgets:{}, lastBackup:null, open
 // Dos tipos de dinero. Los movimientos antiguos (sin acc) cuentan como tarjeta
 const ACCS = {card:{name:'Tarjeta', emoji:'💳', color:'#0EA5E9'}, cash:{name:'Efectivo', emoji:'💵', color:'#22C55E'}};
 const accOf = m => m.acc === 'cash' ? 'cash' : 'card';
+// Tercera cara «Total»: las dos cuentas juntas (no es una cuenta, solo una forma de mirar)
+const FACES = ['all', 'card', 'cash'], ACC_ALL = {name:'Total', emoji:'💰', color:'#14B8A6'};
+const faceInfo = f => ACCS[f] || ACC_ALL;
+const inFace = (m, f) => f === 'all' || accOf(m) === f;
 const signed = m => m.type === 'in' ? m.amount : -m.amount;
 const sumOf = list => list.reduce((t, m) => t + signed(m), 0);
 const opening = () => settings.opening || {card:0, cash:0};
 const accBalance = a => (opening()[a] || 0) + sumOf(movs.filter(m => accOf(m) === a));
 const accMonth = a => { const l = movs.filter(m => accOf(m) === a && sameMonth(m.date));
   return {in: l.filter(m => m.type === 'in').reduce((t, m) => t + m.amount, 0), out: l.filter(m => m.type === 'out').reduce((t, m) => t + m.amount, 0)}; };
+const faceBalance = f => f === 'all' ? accBalance('card') + accBalance('cash') : accBalance(f);
+const faceMonth = f => { if (f !== 'all') return accMonth(f);
+  const a = accMonth('card'), b = accMonth('cash'); return {in: a.in + b.in, out: a.out + b.out}; };
 let recurring = readJSON(RKEY, []);
 const saveSettings = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch {} };
 const saveRec = () => { try { localStorage.setItem(RKEY, JSON.stringify(recurring)); } catch {} };
@@ -740,16 +760,18 @@ function dayLabel(iso){
 
 function render(tone, amount){
   // La tarjeta muestra la cuenta de la cara visible; debajo, el total de las dos
-  const face = settings.face === 'cash' ? 'cash' : 'card', mo = accMonth(face);
-  const total = opening().card + opening().cash + sumOf(movs);
-  $('#accLabel').textContent = `${ACCS[face].emoji} ${ACCS[face].name}`;
-  $('#accTotal').textContent = `Total ${eur.format(total)}`;
-  $('#balWrap').classList.toggle('cash', face === 'cash');
-  $('#sumWrap').classList.toggle('cash', face === 'cash');
-  $('#sumLabel').textContent = `Últimos 6 meses · ${ACCS[face].emoji}`;
+  const face = curFace(), info = faceInfo(face), mo = faceMonth(face);
+  $('#accLabel').textContent = `${info.emoji} ${info.name}`;
+  // En Total, el desglose de cada cuenta; en una cuenta, el total de las dos
+  $('#accTotal').textContent = face === 'all'
+    ? `${ACCS.card.emoji} ${eur.format(accBalance('card'))} · ${ACCS.cash.emoji} ${eur.format(accBalance('cash'))}`
+    : `Total ${eur.format(faceBalance('all'))}`;
+  ['#balWrap', '#sumWrap'].forEach(w => { $(w).classList.toggle('cash', face === 'cash'); $(w).classList.toggle('all', face === 'all'); });
+  document.querySelectorAll('#faceDots i').forEach((d, i) => d.classList.toggle('on', FACES[i] === face));
+  $('#sumLabel').textContent = `Últimos 6 meses · ${info.emoji}`;
   $('#monthIn').textContent  = eur0.format(mo.in);
   $('#monthOut').textContent = eur0.format(mo.out);
-  countTo(accBalance(face), tone, amount);
+  countTo(faceBalance(face), tone, amount);
   renderBudget(movs.filter(m => m.type === 'out' && sameMonth(m.date)).reduce((s,m) => s + m.amount, 0));
   updateBackupUI();
   $('#count').textContent = movs.length ? `${movs.length} en total` : '';
@@ -802,7 +824,7 @@ function renderList(){
 // Barra del presupuesto total en la tarjeta: verde, naranja desde el 80 %, roja al pasarse
 function renderBudget(spent){
   // Si la cuenta visible tiene su propio límite se muestra ese; si no, el global
-  const f = curFace(), accLim = settings.accBudgets?.[f], box = $('#budgetBar'), lim = accLim || settings.budget;
+  const f = curFace(), accLim = f === 'all' ? null : settings.accBudgets?.[f], box = $('#budgetBar'), lim = accLim || settings.budget;
   box.hidden = !lim; if (!lim) return;
   if (accLim) spent = accMonth(f).out;
   const r = spent / lim;
@@ -861,7 +883,7 @@ function smoothPath(pts){
   return d;
 }
 function drawChart(animate){
-  const data = aggregateByMonth(movs.filter(m => accOf(m) === curFace()), 6);   // solo la cuenta visible
+  const data = aggregateByMonth(movs.filter(m => inFace(m, curFace())), 6);   // solo la cuenta visible
   const sumIn = data.reduce((s,x) => s + x.in, 0), sumOut = data.reduce((s,x) => s + x.out, 0), net = sumIn - sumOut;
   $('#net').innerHTML = `${net < 0 ? '−' : ''}${eur0.format(Math.abs(net))}<small>${net < 0 ? 'de más gastado' : 'ahorrado'}</small>`;
 
@@ -1084,7 +1106,7 @@ function openForm(type, preselectedCat, editing){
   const dateKey = d => d.toDateString();
   const today = new Date(), yest = new Date(Date.now() - 864e5);
   let when = editing ? new Date(editing.date) : new Date();
-  let acc = editing ? accOf(editing) : (settings.face === 'cash' ? 'cash' : 'card');
+  let acc = editing ? accOf(editing) : (curFace() === 'all' ? (settings.lastAcc === 'cash' ? 'cash' : 'card') : curFace());
   const title = editing ? (isIn ? 'Editar ingreso' : 'Editar gasto') : (isIn ? 'Nuevo ingreso' : 'Nuevo gasto');
   openSheet(`
     <div class="sheet-head"><h3>${title}</h3><button class="close" data-close>✕</button></div>
@@ -1164,7 +1186,10 @@ function openForm(type, preselectedCat, editing){
     let tone, delta, target;
     // Se muestra la cuenta en la que se apunta, para ver cómo cambia su saldo
     const oldAcc = editing ? accOf(editing) : acc;
-    settings.lastAcc = acc; settings.face = acc; saveSettings();
+    // Desde Total se queda en Total; si cambia de cara, el conteo arranca en el saldo previo de la nueva cara
+    const newFace = curFace() === 'all' ? 'all' : acc;
+    if (newFace !== curFace()) shownBalance = faceBalance(newFace);
+    settings.lastAcc = acc; settings.face = newFace; saveSettings();
     if (editing){
       const old = oldAcc === acc ? (editing.type === 'in' ? 1 : -1) * editing.amount : 0, now = (isIn ? 1 : -1) * value;
       Object.assign(editing, {amount:value, note, date:date.toISOString(), acc});
@@ -1383,8 +1408,8 @@ function drawBubbles(rows, total, motion){
 
 function renderZoom(animate){
   const zf = curFace();
-  $('#zoomTitle').textContent = `Gastos · ${ACCS[zf].emoji} ${ACCS[zf].name}`;
-  zoom.classList.toggle('cash', zf === 'cash');
+  $('#zoomTitle').textContent = `Gastos · ${faceInfo(zf).emoji} ${faceInfo(zf).name}`;
+  zoom.classList.toggle('cash', zf === 'cash'); zoom.classList.toggle('all', zf === 'all');
   const {start, stop, label} = zoomRange();
   $('#periodLbl').textContent = label;
   $('#nextP').disabled = zEnd === 0;
@@ -1393,7 +1418,7 @@ function renderZoom(animate){
   const by = new Map();
   movs.forEach(m => {
     const d = new Date(m.date);
-    if (m.type !== 'out' || accOf(m) !== curFace() || d < start || d >= stop) return;
+    if (m.type !== 'out' || !inFace(m, zf) || d < start || d >= stop) return;
     const c = catOf(m); by.set(c, (by.get(c) || 0) + m.amount);
   });
   const rows = [...by].sort((a, b) => b[1] - a[1]), total = rows.reduce((t, r) => t + r[1], 0);
@@ -1531,7 +1556,7 @@ $('#fReset').addEventListener('click', resetFilters);
 // azul/verde se funde en el sitio y un brillo la cruza) y vertical-spring-ticker (cada dígito del saldo
 // sube por su ventana con un muelle, escalonado, como un cuentakilómetros).
 const balCard = $('#balCard'), balWrap = $('#balWrap');
-const curFace = () => settings.face === 'cash' ? 'cash' : 'card';
+const curFace = () => FACES.includes(settings.face) ? settings.face : 'card';
 let rollingNum = false, rollGen = 0, rollTarget = '';
 function rollNumber(el, from, to, dur = 780){
   const L = Math.max(from.length, to.length), a = from.padStart(L, ' '), b = to.padStart(L, ' '), anims = [];
@@ -1558,16 +1583,16 @@ async function switchFace(){
   // Tocar a mitad: el cambio en curso salta al final y empieza el cambio de vuelta
   const oldTxt = rollingNum ? rollTarget : el.textContent;
   el.getAnimations({subtree:true}).forEach(a => a.cancel());
-  const to = curFace() === 'card' ? 'cash' : 'card', newTxt = eur.format(accBalance(to)), gen = ++rollGen;
+  const to = FACES[(FACES.indexOf(curFace()) + 1) % FACES.length], newTxt = eur.format(faceBalance(to)), gen = ++rollGen;
   navigator.vibrate?.(8);
-  settings.face = to; saveSettings(); shownBalance = accBalance(to); chartDrawn = false;
+  settings.face = to; saveSettings(); shownBalance = faceBalance(to); chartDrawn = false;
   if (reduceMotion()){ rollingNum = false; render(); return; }
   cancelAnimationFrame(countRaf);
   rollingNum = true; rollTarget = newTxt;
   // Piel alrededor: brillo que cruza y textos con un fundido corto; los colores los funde el CSS
   balCard.querySelector('.sheen').animate({transform:['translateX(-120%) skewX(-14deg)', 'translateX(320%) skewX(-14deg)'], opacity:[0, 1, 0]},
     {duration:950, easing:'cubic-bezier(.32,.72,0,1)'});
-  [$('#accLabel'), $('#monthIn'), $('#monthOut'), $('#budgetBar small')].forEach(t =>
+  [$('#accLabel'), $('#accTotal'), $('#monthIn'), $('#monthOut'), $('#budgetBar small')].forEach(t =>
     t.animate({opacity:[1, 0, 1], transform:['none', 'translateY(-4px)', 'none']}, {duration:460, easing:'ease-in-out'}));
   const anims = rollNumber(el, oldTxt, newTxt);
   setTimeout(() => { if (gen === rollGen) render(); }, 200);     // textos y colores nuevos a mitad del fundido
@@ -1665,7 +1690,7 @@ settingsPanel.addEventListener('change', e => {
   const a = e.target.dataset.acc; if (!a) return;
   const v = parseAmount(e.target.value); if (!(v >= 0)) return;
   settings.opening = {...opening(), [a]: v - sumOf(movs.filter(m => accOf(m) === a))};
-  saveSettings(); shownBalance = accBalance(settings.face); render(); toast(`${ACCS[a].emoji} Saldo de ${ACCS[a].name.toLowerCase()} ajustado`);
+  saveSettings(); shownBalance = faceBalance(curFace()); render(); toast(`${ACCS[a].emoji} Saldo de ${ACCS[a].name.toLowerCase()} ajustado`);
 });
 // Guarda al escribir: vacío = sin límite
 settingsPanel.addEventListener('input', e => {
@@ -2010,6 +2035,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) retur
 
 const hoy = new Date().toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
+settings.face = 'all';   // cada arranque desde cero empieza en la cara Total
 runRecurring();
 render();
 updateBackupUI();
