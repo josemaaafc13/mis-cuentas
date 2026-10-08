@@ -1,6 +1,6 @@
 // Guarda la app en el móvil para que abra sin conexión.
 // Cambia VERSION cada vez que publiques cambios para que el móvil descargue la nueva.
-const VERSION = 'miscuentas-v16';
+const VERSION = 'miscuentas-v17';
 const FILES = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

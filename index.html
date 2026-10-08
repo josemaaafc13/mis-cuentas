@@ -187,9 +187,13 @@ body.sheet-open .scrim{background:color-mix(in srgb,var(--scrim) 55%,transparent
 .opt.in .ico{color:var(--green-text)} .opt.out .ico{color:var(--red-text)}
 .opt .pill{font-size:.8rem;padding:3px 11px}
 .opt.in{transform-origin:100% 100%} .opt.out{transform-origin:0 100%}
+.menu{align-items:flex-end}
+.opt.tr{--c:#14B8A6;transform-origin:50% 100%;margin-bottom:34px}
+.opt.tr .ico{color:#0F766E;font-size:1.6rem}
 body.menu-open .menu{pointer-events:auto}
 body.menu-open .opt{opacity:1;transform:none}
-body.menu-open .opt.out{transition-delay:.05s}
+body.menu-open .opt.tr{transition-delay:.03s}
+body.menu-open .opt.out{transition-delay:.06s}
 .opt:active{transform:scale(.95)!important}
 
 /* Burbuja: el mismo lenguaje en todo (categorías, movimientos, botones del +, hojas, gráfica).
@@ -441,6 +445,18 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .accs button.on .ico{transform:scale(1.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 3px color-mix(in srgb,var(--c) 75%,transparent),0 6px 16px color-mix(in srgb,var(--c) 30%,transparent)}
 .accs button:not(.on){opacity:.6}
 .mov .txt small .acc{margin-left:5px}
+/* Mover dinero: dos cuentas frente a frente y una flecha que se puede girar */
+.tr-flow{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 0}
+.tr-end{display:flex;flex-direction:column;align-items:center;gap:5px;width:104px}
+.tr-end .ico{width:60px;height:60px;font-size:1.7rem}
+.tr-end small{font-size:.78rem;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.tr-swap{flex:none;width:44px;height:44px;margin-bottom:34px;border-radius:50%;display:grid;place-items:center;font-size:1.25rem;font-weight:800;
+  color:#0F766E;background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim),0 0 0 1.5px rgba(20,184,166,.5);transition:transform .1s}
+.tr-swap:active{transform:scale(.9)}
+.tr-hint{text-align:center;margin:6px 0 0;font-size:.82rem;font-weight:600;color:var(--muted)}
+.amt.tr,.sheet[data-type=tr] .amount-wrap{color:#0F766E}
+.sheet[data-type=tr] .primary{background:linear-gradient(145deg,#14B8A6,#0F766E);box-shadow:0 8px 20px rgba(20,184,166,.35)}
+@media (prefers-color-scheme:dark){.amt.tr,.sheet[data-type=tr] .amount-wrap,.tr-swap,.opt.tr .ico{color:#5EEAD4}}
 
 /* Buscador y filtros */
 .search{margin:0 0 4px}
@@ -507,6 +523,53 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .toast.show{transform:translate(-50%,0)}
 .toast button[hidden]{display:none}
 .toast button{padding:8px 12px;border-radius:12px;background:var(--sky-100);color:var(--sky-700);font-weight:700}
+
+/* Tutorial: velo oscuro con un agujero de luz sobre la pieza real que hay que tocar */
+.coach{position:fixed;inset:0;z-index:70;pointer-events:none}
+.coach[hidden]{display:none}
+.coach-hole{position:fixed;left:0;top:0;width:0;height:0;border-radius:24px;pointer-events:none;will-change:transform;
+  box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 28px 8px rgba(56,189,248,.55),0 0 0 200vmax rgba(3,22,38,.6);transition:box-shadow .4s ease}
+.coach-hole::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:2px solid rgba(255,255,255,.9);animation:ring 1.8s var(--ease-ios) infinite}
+.coach.free .coach-hole{box-shadow:0 0 0 0 transparent,0 0 0 0 transparent,0 0 0 200vmax rgba(3,22,38,0)}
+.coach.free .coach-hole::after{display:none}
+.coach-block{position:fixed;pointer-events:auto}
+.coach.free .coach-block{pointer-events:none}
+.coach-tip{position:fixed;left:16px;right:16px;max-width:380px;margin:0 auto;padding:14px 16px 10px;border-radius:22px;pointer-events:auto;
+  background:color-mix(in srgb,var(--surface) 84%,transparent);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  box-shadow:inset 0 1px 0 var(--lg-edge,rgba(255,255,255,.7)),inset 0 0 0 1px var(--lg-rim,rgba(255,255,255,.4)),var(--shadow-l)}
+.coach-tip p{margin:0 0 6px;font-size:1.02rem;font-weight:650;line-height:1.35;letter-spacing:-.01em}
+.coach-foot{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--muted);font-weight:700}
+.coach-foot button{color:var(--sky-700);font-weight:700;padding:6px 4px 6px 12px}
+.coach-tip .primary{margin-top:6px}
+@keyframes ring{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(1.12)}}
+
+/* Bienvenida: dos páginas que se deslizan con el dedo */
+.welcome{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.welcome::-webkit-scrollbar{display:none}
+.wpage{flex:0 0 100%;scroll-snap-align:center;padding:6px 10px 0;text-align:center}
+.wpage .wicon{width:84px;height:84px;margin:4px auto 0;border-radius:20px;display:block;box-shadow:0 10px 26px rgba(14,120,200,.3)}
+.wpage .wbig{width:84px;height:84px;margin:4px auto 0;font-size:2.4rem;--c:#0EA5E9}
+.wpage h3{margin:16px 0 8px;font-size:1.55rem;line-height:1.1;letter-spacing:-.025em}
+.wpage p{margin:0 auto 10px;max-width:31ch;color:var(--muted);font-weight:600;line-height:1.42}
+.wpage .safe{display:flex;align-items:center;gap:10px;max-width:31ch;margin:14px auto 4px;padding:10px 12px;border-radius:16px;text-align:left;
+  background:var(--lg-fill);box-shadow:inset 0 1px 0 var(--lg-fill-rim);font-size:.86rem;font-weight:650;line-height:1.3}
+.wpage .safe span{font-size:1.4rem}
+.wpage .share{display:inline-grid;place-items:center;width:22px;height:22px;vertical-align:-5px;color:var(--sky-700)}
+.wdots{display:flex;justify-content:center;gap:7px;margin:8px 0 2px}
+.wdots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.22;transition:opacity .3s,transform .3s var(--spring)}
+.wdots i.on{opacity:.85;transform:scale(1.15)}
+.wskip{display:block;margin:6px auto 0;padding:8px 12px;color:var(--muted);font-weight:700;font-size:.9rem}
+
+/* Bloqueo: cristal grueso que tapa todo (también en la vista de apps recientes) */
+.lock{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;
+  background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(40px) saturate(160%);-webkit-backdrop-filter:blur(40px) saturate(160%)}
+.lock[hidden]{display:none}
+.lock-in{width:100%;max-width:320px;text-align:center}
+.lock-icon{width:96px;height:96px;border-radius:22px;box-shadow:0 12px 30px rgba(14,120,200,.3)}
+.lock h2{margin:16px 0 4px;font-size:1.5rem;letter-spacing:-.02em}
+.lock p{margin:0 0 26px;color:var(--muted);font-weight:600}
+.lock-reset{margin-top:14px;padding:8px;color:var(--sky-700);font-weight:700;font-size:.88rem}
+@media (prefers-reduced-transparency:reduce){.lock{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}}
 
 @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes leave{to{opacity:0;transform:translateX(-30%) scale(.95)}}
@@ -585,7 +648,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
       <button id="fToggle" class="ftoggle" aria-label="Filtros"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
     </div>
     <div class="filters" id="filters" hidden>
-      <div class="chips" data-f="type"><button data-v="all" class="on">Todo</button><button data-v="out">Gastos</button><button data-v="in">Ingresos</button></div>
+      <div class="chips" data-f="type"><button data-v="all" class="on">Todo</button><button data-v="out">Gastos</button><button data-v="in">Ingresos</button><button data-v="tr">🔄 Movimientos</button></div>
       <div class="chips" data-f="acc"><button data-v="all" class="on">Todo</button><button data-v="card">💳 Tarjeta</button><button data-v="cash">💵 Efectivo</button></div>
       <div class="cat-strip" id="fCats"></div>
       <div class="chips" data-f="period"><button data-v="all" class="on">Siempre</button><button data-v="m0">Este mes</button><button data-v="m1">Mes pasado</button><button data-v="m3">3 meses</button><button data-v="y">Año</button></div>
@@ -601,6 +664,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 
 <nav class="menu" aria-label="Añadir">
   <button class="opt in" data-open="in"><span class="ico bub">＋</span><span class="pill">Ingreso</span></button>
+  <button class="opt tr" data-open="tr" id="optTr"><span class="ico bub">⇄</span><span class="pill">Mover</span></button>
   <button class="opt out" data-open="out"><span class="ico bub">－</span><span class="pill">Gasto</span></button>
 </nav>
 <div class="cluster" id="cluster" aria-label="Categorías de gasto"></div>
@@ -676,8 +740,39 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
     <h4 class="grp-t">Movimientos fijos</h4>
     <div class="grp" id="recList"></div>
     <p class="grp-note">Para crear uno, activa «Repetir cada mes» al añadir un gasto o un ingreso. Se apuntan solos el mismo día de cada mes.</p>
+
+    <h4 class="grp-t">Privacidad</h4>
+    <div class="grp">
+      <label class="row"><span class="ico bub" style="--c:#34C759">🔒</span><span>Bloqueo con Face ID<small id="lockState">Pide Face ID al abrir la app</small></span>
+        <input type="checkbox" class="sw" id="lockOn" aria-label="Bloqueo con Face ID"></label>
+    </div>
+    <p class="grp-note">Tapa la app hasta que la desbloqueas con tu cara o el código del iPhone. Tus datos siguen solo en este iPhone.</p>
+
+    <h4 class="grp-t">Ayuda</h4>
+    <div class="grp">
+      <button class="row" id="tourBtn"><span class="ico bub" style="--c:#14B8A6">🧭</span><span>Ver tutorial</span><i>›</i></button>
+    </div>
   </div>
 </section>
+
+<!-- Tutorial: un foco de luz recorre las partes reales de la app -->
+<div class="coach" id="coach" hidden>
+  <div class="coach-hole" id="coachHole"></div>
+  <i class="coach-block"></i><i class="coach-block"></i><i class="coach-block"></i><i class="coach-block"></i>
+  <div class="coach-tip" id="coachTip" role="status" aria-live="polite"><p id="coachText"></p>
+    <div class="coach-foot"><span id="coachStep"></span><button id="coachSkip">Saltar</button></div></div>
+</div>
+
+<!-- Bloqueo con Face ID: cortina de cristal hasta que el iPhone confirma que eres tú -->
+<div class="lock" id="lock" hidden>
+  <div class="lock-in">
+    <img src="icon-192.png" alt="" class="lock-icon">
+    <h2>Mis Cuentas</h2>
+    <p id="lockMsg">Bloqueada</p>
+    <button class="primary" id="lockBtn">Desbloquear con Face ID</button>
+    <button class="lock-reset" id="lockReset" hidden>¿No funciona? Configurar de nuevo</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="undo">Deshacer</button></div>
 
@@ -696,6 +791,7 @@ const CATS = [
   {id:'regalos',      name:'Regalos',       emoji:'🎁', color:'#F43F5E'},
 ];
 const INCOME = {name:'Ingreso', emoji:'💶', color:'#22C55E'};
+const TRANSFER = {name:'Movimiento', emoji:'🔄', color:'#14B8A6'};
 const FALLBACK = {id:'otros', name:'Otros', emoji:'✨', color:'#94A3B8'};
 const KEY = 'miscuentas.movs.v1';
 const $ = s => document.querySelector(s);
@@ -709,16 +805,7 @@ const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matche
 
 function load(){
   try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch {}
-  // Datos de ejemplo solo para ver el diseño la primera vez
-  const d = n => new Date(Date.now() - n*864e5).toISOString();
-  return [
-    {id:1,type:'in', amount:1450,  note:'Nómina',                       date:d(6)},
-    {id:2,type:'out',amount:38.5,  cat:'comida',        note:'Supermercado', date:d(0)},
-    {id:3,type:'out',amount:12.99, cat:'suscripciones', note:'Spotify',      date:d(1)},
-    {id:4,type:'out',amount:55,    cat:'coche',         note:'Gasolina',     date:d(1)},
-    {id:5,type:'in', amount:120,   note:'Venta Wallapop',               date:d(3)},
-    {id:6,type:'out',amount:24,    cat:'ocio',          note:'Cine',         date:d(4)},
-  ];
+  return [];   // quien empieza de cero lo hace vacío: el tutorial le guía a apuntar su primer gasto
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(movs)); } catch {} }
 
@@ -732,11 +819,16 @@ const accOf = m => m.acc === 'cash' ? 'cash' : 'card';
 // Tercera cara «Total»: las dos cuentas juntas (no es una cuenta, solo una forma de mirar)
 const FACES = ['all', 'card', 'cash'], ACC_ALL = {name:'Total', emoji:'💰', color:'#14B8A6'};
 const faceInfo = f => ACCS[f] || ACC_ALL;
-const inFace = (m, f) => f === 'all' || accOf(m) === f;
-const signed = m => m.type === 'in' ? m.amount : -m.amount;
+// Movimiento entre cuentas (cajero): type 'tr', de `from` a `to`. No es ingreso ni gasto: en Total suma 0
+const isTr = m => m.type === 'tr';
+const inFace = (m, f) => f === 'all' || (isTr(m) ? m.from === f || m.to === f : accOf(m) === f);
+const signed = m => m.type === 'in' ? m.amount : m.type === 'out' ? -m.amount : 0;
 const sumOf = list => list.reduce((t, m) => t + signed(m), 0);
+// Lo que un movimiento cambia el saldo de una cuenta concreta
+const delta = (m, a) => isTr(m) ? (m.to === a ? m.amount : m.from === a ? -m.amount : 0) : accOf(m) === a ? signed(m) : 0;
+const accSum = a => movs.reduce((t, m) => t + delta(m, a), 0);
 const opening = () => settings.opening || {card:0, cash:0};
-const accBalance = a => (opening()[a] || 0) + sumOf(movs.filter(m => accOf(m) === a));
+const accBalance = a => (opening()[a] || 0) + accSum(a);
 const accMonth = a => { const l = movs.filter(m => accOf(m) === a && sameMonth(m.date));
   return {in: l.filter(m => m.type === 'in').reduce((t, m) => t + m.amount, 0), out: l.filter(m => m.type === 'out').reduce((t, m) => t + m.amount, 0)}; };
 const faceBalance = f => f === 'all' ? accBalance('card') + accBalance('cash') : accBalance(f);
@@ -767,7 +859,9 @@ function formatAmountInput(el){
     el.setSelectionRange(pos, pos);
   });
 }
-const catOf = m => m.type === 'in' ? INCOME : (CATS.find(c => c.id === m.cat) || FALLBACK);
+const catOf = m => m.type === 'in' ? INCOME : isTr(m) ? TRANSFER : (CATS.find(c => c.id === m.cat) || FALLBACK);
+const trLabel = m => `${ACCS[m.from].emoji} ${ACCS[m.from].name} → ${ACCS[m.to].emoji} ${ACCS[m.to].name}`;
+const trTitle = m => m.from === "card" ? "Sacado del cajero" : "Ingresado en el banco";
 const tint = c => `background:color-mix(in srgb, ${c} 16%, transparent)`;
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 
@@ -822,7 +916,7 @@ function renderList(){
     const label = dayLabel(m.date);
     if (days.at(-1)?.label !== label) days.push({label, total:0, items:[]});
     const d = days.at(-1);
-    d.items.push(m); d.total += m.type === 'in' ? m.amount : -m.amount;
+    d.items.push(m); d.total += signed(m);
   }
   // Entrada en cascada solo la primera vez (o para el que acabas de añadir), para que no parpadee al guardar
   let i = 0, html = '';
@@ -833,8 +927,8 @@ function renderList(){
       const delay = firstRender ? Math.min(i++, 10) * 40 : 0;
       html += `<button class="mov${enter ? ' enter' : ''}" data-id="${esc(m.id)}" style="--c:${c.color}${delay ? `;animation-delay:${delay}ms` : ''}">
         <span class="ico bub">${c.emoji}</span>
-        <span class="txt"><b>${esc(m.note || c.name)}</b><small>${m.type === 'in' ? 'Ingreso' : c.name}${m.rec ? '<span class="rec" title="Fijo mensual">↻</span>' : ''}<span class="acc" title="${ACCS[accOf(m)].name}">${ACCS[accOf(m)].emoji}</span></small></span>
-        <span class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
+        <span class="txt"><b>${esc(m.note || (isTr(m) ? trTitle(m) : c.name))}</b><small>${isTr(m) ? trLabel(m) : `${m.type === 'in' ? 'Ingreso' : c.name}${m.rec ? '<span class="rec" title="Fijo mensual">↻</span>' : ''}<span class="acc" title="${ACCS[accOf(m)].name}">${ACCS[accOf(m)].emoji}</span>`}</small></span>
+        <span class="amt ${m.type}">${isTr(m) ? '' : m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</span></button>`;
     }
     html += '</div>';
   }
@@ -886,7 +980,7 @@ function aggregateByMonth(list, n){
   for (const mv of list){
     const d = new Date(mv.date);
     const b = months.find(x => x.y === d.getFullYear() && x.m === d.getMonth());
-    if (b) b[mv.type] += mv.amount;
+    if (b && !isTr(mv)) b[mv.type] += mv.amount;
   }
   return months;
 }
@@ -990,7 +1084,7 @@ $('#fab').addEventListener('click', () => {
 });
 $('#scrim').addEventListener('click', () => { body.classList.remove('menu-open'); closeCluster(); closeSheet(); closeGrow(); });
 document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () =>
-  b.dataset.open === 'out' ? openCluster() : openForm('in')));
+  b.dataset.open === 'out' ? openCluster() : b.dataset.open === 'tr' ? openTransfer() : openForm('in')));
 
 // ── Burbujas de categoría en anillos alrededor del + ──
 const cluster = $('#cluster');
@@ -1122,35 +1216,13 @@ function closeSheet(){
   document.activeElement?.blur();
 }
 
-function openForm(type, preselectedCat, editing){
-  const isIn = type === 'in';
-  let c = isIn ? INCOME : (CATS.find(x => x.id === (editing?.cat || preselectedCat)) || CATS[0]);
-  const dateKey = d => d.toDateString();
-  const today = new Date(), yest = new Date(Date.now() - 864e5);
-  let when = editing ? new Date(editing.date) : new Date();
-  let acc = editing ? accOf(editing) : (curFace() === 'all' ? (settings.lastAcc === 'cash' ? 'cash' : 'card') : curFace());
-  const title = editing ? (isIn ? 'Editar ingreso' : 'Editar gasto') : (isIn ? 'Nuevo ingreso' : 'Nuevo gasto');
-  openSheet(`
-    <div class="sheet-head"><h3>${title}</h3><button class="close" data-close>✕</button></div>
-    <div class="picked" id="picked" style="--c:${c.color}"><span class="ico bub">${c.emoji}</span><span class="pill">${c.name}</span>
-      ${isIn ? '' : '<span class="hint">Toca para cambiar</span>'}</div>
-    ${isIn ? '' : `<div class="cat-strip" id="catStrip" hidden>${CATS.map(k =>
-      `<button data-cat="${k.id}" style="--c:${k.color}"${k.id === c.id ? ' class="on"' : ''}><span class="ico bub">${k.emoji}</span>${k.name}</button>`).join('')}</div>`}
-    <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"
-      value="${editing ? num2.format(editing.amount) : ''}"><span class="cur">€</span></label>
-    <div class="dates" id="dates"><button data-d="0">Hoy</button><button data-d="1">Ayer</button>
-      <button data-d="x" id="otherDay">📅 <span>Otro día</span><input type="date" id="pickDate" tabindex="-1"></button></div>
-    <div class="accs" id="accs">${['card', 'cash'].map(a => `<button data-acc="${a}" style="--c:${ACCS[a].color}"${a === acc ? ' class="on"' : ''}>
-      <span class="ico bub">${ACCS[a].emoji}</span><span class="pill">${ACCS[a].name}</span></button>`).join('')}</div>
-    <input class="field" id="note" maxlength="40" value="${editing ? esc(editing.note || '') : ''}"
-      placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
-    ${editing ? '' : `<label class="rep"><span>↻ Repetir cada mes</span><input type="checkbox" class="sw" id="rep"></label>`}
-    <button class="primary" id="saveBtn">${editing ? 'Guardar cambios' : isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type, c.color);
-
-  formatAmountInput($('#amount'));
-
-  // Fecha rápida: Hoy · Ayer · Otro día (selector nativo)
-  const paintDates = () => {
+// Fecha rápida: Hoy · Ayer · Otro día (selector nativo). Devuelve una función que lee la fecha elegida
+const DATES_HTML = `<div class="dates" id="dates"><button data-d="0">Hoy</button><button data-d="1">Ayer</button>
+      <button data-d="x" id="otherDay">📅 <span>Otro día</span><input type="date" id="pickDate" tabindex="-1"></button></div>`;
+function bindDates(start){
+  let when = new Date(start);
+  const dateKey = d => d.toDateString(), today = new Date(), yest = new Date(Date.now() - 864e5);
+  const paint = () => {
     const k = dateKey(when), b = $('#dates').querySelectorAll('button');
     b[0].classList.toggle('on', k === dateKey(today)); b[1].classList.toggle('on', k === dateKey(yest));
     const other = k !== dateKey(today) && k !== dateKey(yest);
@@ -1166,15 +1238,42 @@ function openForm(type, preselectedCat, editing){
       try { pick.showPicker(); } catch { pick.focus(); pick.click(); }
       return;
     }
-    when = new Date(Date.now() - b.dataset.d * 864e5); paintDates();
+    when = new Date(Date.now() - b.dataset.d * 864e5); paint();
   });
+  pick.addEventListener('change', () => { if (pick.value){ const [y, mo, d] = pick.value.split('-').map(Number); when = new Date(y, mo - 1, d); paint(); } });
+  paint();
+  return () => when;
+}
+
+function openForm(type, preselectedCat, editing){
+  const isIn = type === 'in';
+  let c = isIn ? INCOME : (CATS.find(x => x.id === (editing?.cat || preselectedCat)) || CATS[0]);
+  const when = editing ? new Date(editing.date) : new Date();
+  let acc = editing ? accOf(editing) : (curFace() === 'all' ? (settings.lastAcc === 'cash' ? 'cash' : 'card') : curFace());
+  const title = editing ? (isIn ? 'Editar ingreso' : 'Editar gasto') : (isIn ? 'Nuevo ingreso' : 'Nuevo gasto');
+  openSheet(`
+    <div class="sheet-head"><h3>${title}</h3><button class="close" data-close>✕</button></div>
+    <div class="picked" id="picked" style="--c:${c.color}"><span class="ico bub">${c.emoji}</span><span class="pill">${c.name}</span>
+      ${isIn ? '' : '<span class="hint">Toca para cambiar</span>'}</div>
+    ${isIn ? '' : `<div class="cat-strip" id="catStrip" hidden>${CATS.map(k =>
+      `<button data-cat="${k.id}" style="--c:${k.color}"${k.id === c.id ? ' class="on"' : ''}><span class="ico bub">${k.emoji}</span>${k.name}</button>`).join('')}</div>`}
+    <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"
+      value="${editing ? num2.format(editing.amount) : ''}"><span class="cur">€</span></label>
+    ${DATES_HTML}
+    <div class="accs" id="accs">${['card', 'cash'].map(a => `<button data-acc="${a}" style="--c:${ACCS[a].color}"${a === acc ? ' class="on"' : ''}>
+      <span class="ico bub">${ACCS[a].emoji}</span><span class="pill">${ACCS[a].name}</span></button>`).join('')}</div>
+    <input class="field" id="note" maxlength="40" value="${editing ? esc(editing.note || '') : ''}"
+      placeholder="${isIn ? 'Motivo (opcional) · ej. Nómina' : 'Concepto (opcional) · ej. Cena con amigos'}">
+    ${editing ? '' : `<label class="rep"><span>↻ Repetir cada mes</span><input type="checkbox" class="sw" id="rep"></label>`}
+    <button class="primary" id="saveBtn">${editing ? 'Guardar cambios' : isIn ? 'Añadir ingreso' : 'Añadir gasto'}</button>`, type, c.color);
+
+  formatAmountInput($('#amount'));
+  const getWhen = bindDates(when);
   $('#accs').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     acc = b.dataset.acc; navigator.vibrate?.(6);
     $('#accs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
   });
-  pick.addEventListener('change', () => { if (pick.value){ const [y, mo, d] = pick.value.split('-').map(Number); when = new Date(y, mo - 1, d); paintDates(); } });
-  paintDates();
 
   // Cambiar de categoría (gastos): la burbuja grande despliega una tira con todas
   if (!isIn){
@@ -1201,7 +1300,7 @@ function openForm(type, preselectedCat, editing){
     const amount = parseAmount($('#amount').value);
     if (!(amount > 0)){ const w = $('.amount-wrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); return; }
     // La fecha elegida, conservando la hora (la de ahora al crear, la original al editar)
-    const date = editing ? new Date(editing.date) : new Date();
+    const date = editing ? new Date(editing.date) : new Date(), when = getWhen();
     date.setFullYear(when.getFullYear(), when.getMonth(), when.getDate());
     const value = Math.round(amount * 100) / 100, note = $('#note').value.trim();
     const before = spentBefore(c.id);
@@ -1241,6 +1340,69 @@ function openForm(type, preselectedCat, editing){
   });
 }
 
+// ── Mover dinero entre cuentas (cajero): no es gasto ni ingreso, el dinero solo cambia de bolsillo ──
+function openTransfer(editing){
+  let from = editing ? editing.from : (curFace() === 'cash' ? 'cash' : 'card');
+  const to = () => from === 'card' ? 'cash' : 'card';
+  const end = a => `<div class="tr-end" data-a="${a}" style="--c:${ACCS[a].color}"><span class="ico bub">${ACCS[a].emoji}</span>
+      <span class="pill">${ACCS[a].name}</span><small>${eur.format(accBalance(a))}</small></div>`;
+  openSheet(`
+    <div class="sheet-head"><h3>${editing ? 'Editar movimiento' : 'Mover dinero'}</h3><button class="close" data-close>✕</button></div>
+    <div class="tr-flow" id="trFlow">${end(from)}<button class="tr-swap" id="trSwap" aria-label="Cambiar el sentido">→</button>${end(to())}</div>
+    <p class="tr-hint" id="trHint"></p>
+    <label class="amount-wrap"><input id="amount" inputmode="decimal" placeholder="0,00" autocomplete="off"
+      value="${editing ? num2.format(editing.amount) : ''}"><span class="cur">€</span></label>
+    ${DATES_HTML}
+    <input class="field" id="note" maxlength="40" value="${editing ? esc(editing.note || '') : ''}" placeholder="Concepto (opcional) · ej. Cajero del centro">
+    <button class="primary" id="saveBtn">${editing ? 'Guardar cambios' : 'Mover dinero'}</button>`, 'tr', TRANSFER.color);
+  formatAmountInput($('#amount'));
+  const getWhen = bindDates(editing ? new Date(editing.date) : new Date());
+  const hint = () => $('#trHint').textContent = from === 'card' ? '🏧 Sacar del cajero: de la tarjeta al efectivo' : '🏦 Ingresar en el banco: del efectivo a la tarjeta';
+  hint();
+  // Cambiar el sentido: las dos cuentas se cruzan con un muelle (FLIP: se mide, se reordena y se anima desde donde estaban)
+  $('#trSwap').addEventListener('click', () => {
+    const flow = $('#trFlow'), [a, b] = flow.querySelectorAll('.tr-end'), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    flow.insertBefore(b, flow.firstChild); flow.appendChild(a);
+    from = to(); hint(); navigator.vibrate?.(8);
+    if (reduceMotion()) return;
+    const ease = 'cubic-bezier(.34,1.3,.64,1)';
+    a.animate({transform:[`translateX(${ra.left - a.getBoundingClientRect().left}px)`, 'none']}, {duration:460, easing:ease});
+    b.animate({transform:[`translateX(${rb.left - b.getBoundingClientRect().left}px)`, 'none']}, {duration:460, easing:ease});
+    $('#trSwap').animate({transform:['rotate(-180deg) scale(.8)', 'none']}, {duration:460, easing:ease});
+  });
+  if (scrollY > 0) scrollTo({top:0, behavior: reduceMotion() ? 'auto' : 'smooth'});
+  if (page !== 0) goPage(0);
+  if (!editing) setTimeout(() => $('#amount').focus(), 350);
+
+  $('#saveBtn').addEventListener('click', () => {
+    const amount = parseAmount($('#amount').value);
+    if (!(amount > 0)){ const w = $('.amount-wrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); return; }
+    const date = editing ? new Date(editing.date) : new Date(), when = getWhen();
+    date.setFullYear(when.getFullYear(), when.getMonth(), when.getDate());
+    const value = Math.round(amount * 100) / 100, note = $('#note').value.trim(), face = curFace();
+    const seen = m => face === 'all' ? 0 : delta(m, face);         // lo que cambia en la cara visible
+    let target, d;
+    if (editing){
+      const old = seen(editing);
+      Object.assign(editing, {amount:value, from, to:to(), note, date:date.toISOString()});
+      target = editing; d = seen(editing) - old;
+    } else {
+      target = {id:Date.now(), type:'tr', amount:value, from, to:to(), note, date:date.toISOString()};
+      movs.push(target); d = seen(target);
+    }
+    justAdded = target.id; chartDrawn = false; save(); closeSheet();
+    navigator.vibrate?.(12);
+    if (scrollY > 0) scrollTo({top:0});
+    if (page !== 0) goPage(0);
+    setTimeout(() => {
+      render(d > 0 ? 'in' : d < 0 ? 'out' : undefined, Math.abs(d));
+      const card = $('.card'); card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+      if (accBalance(target.from) < 0) toast(`⚠️ ${ACCS[target.from].emoji} ${ACCS[target.from].name} se queda en negativo`);
+      else if (face === 'all') toast(`🔄 ${eur.format(value)} · ${trLabel(target)}`);
+    }, reduceMotion() ? 0 : 260);
+  });
+}
+
 // Detalle de un movimiento (con opción de eliminar)
 $('#movs').addEventListener('click', e => {
   const row = e.target.closest('.mov'); if (!row) return;
@@ -1249,13 +1411,13 @@ $('#movs').addEventListener('click', e => {
   openSheet(`
     <div class="sheet-head"><h3>Detalle</h3><button class="close" data-close>✕</button></div>
     <div class="detail"><div class="ico bub" style="--c:${c.color}">${c.emoji}</div>
-      <div class="amt ${m.type}">${m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</div>
-      <p><b>${esc(m.note || c.name)}</b></p>
-      <p>${m.type === 'in' ? 'Ingreso' : c.name} · ${ACCS[accOf(m)].emoji} ${ACCS[accOf(m)].name}</p>
+      <div class="amt ${m.type}">${isTr(m) ? '' : m.type === 'in' ? '+' : '−'}${eur.format(m.amount)}</div>
+      <p><b>${esc(m.note || (isTr(m) ? trTitle(m) : c.name))}</b></p>
+      <p>${isTr(m) ? trLabel(m) : `${m.type === 'in' ? 'Ingreso' : c.name} · ${ACCS[accOf(m)].emoji} ${ACCS[accOf(m)].name}`}</p>
       <p>${new Date(m.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</p></div>
     <button class="ghost" id="edit">Editar</button>
     <button class="danger" id="del">Eliminar movimiento</button>`, '', c.color);
-  $('#edit').addEventListener('click', () => openForm(m.type, m.cat, m));
+  $('#edit').addEventListener('click', () => isTr(m) ? openTransfer(m) : openForm(m.type, m.cat, m));
   $('#del').addEventListener('click', () => {
     closeSheet();
     const idx = movs.indexOf(m);
@@ -1531,7 +1693,7 @@ const norm = v => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLow
 const filtering = () => !!(F.q || F.type !== 'all' || F.acc !== 'all' || F.cats.size || F.period !== 'all');
 function passFilter(m){
   if (F.type !== 'all' && m.type !== F.type) return false;
-  if (F.acc !== 'all' && accOf(m) !== F.acc) return false;
+  if (F.acc !== 'all' && !inFace(m, F.acc)) return false;
   if (F.cats.size && !(m.type === 'out' && F.cats.has(m.cat))) return false;
   if (F.period !== 'all'){
     const d = new Date(m.date), n = new Date(); let from, to = null;
@@ -1541,7 +1703,8 @@ function passFilter(m){
     else from = new Date(n.getFullYear(), 0, 1);
     if (d < from || (to && d >= to)) return false;
   }
-  if (F.q && !norm(`${m.note} ${catOf(m).name} ${m.type === 'in' ? 'ingreso' : 'gasto'} ${ACCS[accOf(m)].name}`).includes(norm(F.q))) return false;
+  const words = isTr(m) ? `movimiento cajero ${trLabel(m)}` : `${catOf(m).name} ${m.type === 'in' ? 'ingreso' : 'gasto'} ${ACCS[accOf(m)].name}`;
+  if (F.q && !norm(`${m.note} ${words}`).includes(norm(F.q))) return false;
   return true;
 }
 const filtersEl = $('#filters'), qEl = $('#q');
@@ -1626,15 +1789,16 @@ balCard.addEventListener('click', switchFace);
 balCard.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); switchFace(); } });
 
 // ── Saldo inicial: la primera vez con datos, pregunta cuánto hay en tarjeta y en efectivo ──
-function askOpening(){
+function askOpening(fresh){
   settings.opening = {card:0, cash:0}; saveSettings();          // solo se pregunta una vez
-  const cardNow = sumOf(movs.filter(m => accOf(m) === 'card'));
+  const cardNow = accSum('card');
   openSheet(`
     <div class="sheet-head"><h3>¿Cuánto tienes ahora?</h3><button class="close" data-close>✕</button></div>
-    <p class="grp-note" style="margin:0 2px 10px">Ahora la app separa la tarjeta y el efectivo. Tus movimientos de antes se han guardado como tarjeta.</p>
+    <p class="grp-note" style="margin:0 2px 10px">${fresh ? 'Escribe lo que tienes en la tarjeta y en la cartera. Así la app empieza con tus saldos reales; puedes cambiarlos cuando quieras en ⚙.'
+      : 'Ahora la app separa la tarjeta y el efectivo. Tus movimientos de antes se han guardado como tarjeta.'}</p>
     <div class="grp">
       <label class="row"><span class="ico bub" style="--c:#0EA5E9">💳</span><span>Tarjeta</span>
-        <input class="mini" id="opCard" inputmode="decimal" autocomplete="off" value="${num2.format(Math.max(0, cardNow))}"><em>€</em></label>
+        <input class="mini" id="opCard" inputmode="decimal" autocomplete="off" ${fresh ? 'placeholder="0"' : `value="${num2.format(Math.max(0, cardNow))}"`}><em>€</em></label>
       <label class="row"><span class="ico bub" style="--c:#22C55E">💵</span><span>Efectivo</span>
         <input class="mini" id="opCash" inputmode="decimal" autocomplete="off" placeholder="0"><em>€</em></label>
     </div>
@@ -1642,8 +1806,8 @@ function askOpening(){
   formatAmountInput($('#opCard')); formatAmountInput($('#opCash'));
   $('#opSave').addEventListener('click', () => {
     const c = parseAmount($('#opCard').value) || 0, k = parseAmount($('#opCash').value) || 0;
-    settings.opening = {card: c - sumOf(movs.filter(m => accOf(m) === 'card')), cash: k - sumOf(movs.filter(m => accOf(m) === 'cash'))};
-    saveSettings(); closeSheet(); shownBalance = 0; render(); toast('✓ Saldos guardados · toca la tarjeta para girarla');
+    settings.opening = {card: c - accSum('card'), cash: k - accSum('cash')};
+    saveSettings(); closeSheet(); shownBalance = 0; render(); if (!fresh) toast('✓ Saldos guardados · toca la tarjeta para girarla');
   });
 }
 const maybeAskOpening = () => { if (localStorage.getItem(KEY) && !settings.opening) setTimeout(askOpening, 300); };
@@ -1654,9 +1818,9 @@ function playIntro(){
   const end = () => {
     if (ended) return; ended = true;
     ov.getAnimations({subtree:true}).forEach(a => a.cancel()); ov.remove();
-    shownBalance = 0; render(); maybeAskOpening(); setTimeout(pullInbox, 700);
+    shownBalance = 0; render(); onboard(); setTimeout(pullInbox, 700);
   };
-  if (!ov){ maybeAskOpening(); setTimeout(pullInbox, 700); return; }
+  if (!ov){ onboard(); setTimeout(pullInbox, 700); return; }
   if (reduceMotion() || /nointro/.test(location.search)){ ov.animate({opacity:[1, 0]}, {duration:300, fill:'forwards'}).finished.then(end); return; }
   ov.addEventListener('pointerdown', end, {once:true});
   const icon = ov.querySelector('.intro-icon'), ease = 'cubic-bezier(.32,.72,0,1)';
@@ -1686,7 +1850,7 @@ const settingsPanel = $('#settings'), gear = $('#gear');
 gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, renderSettings));
 
 function renderSettings(){
-  updateBackupUI(); updatePayNote(); updateInboxUI();
+  updateBackupUI(); updatePayNote(); updateInboxUI(); updateLockUI();
   settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
@@ -1711,7 +1875,7 @@ settingsPanel.querySelectorAll('[data-acc], [data-accb]').forEach(formatAmountIn
 settingsPanel.addEventListener('change', e => {
   const a = e.target.dataset.acc; if (!a) return;
   const v = parseAmount(e.target.value); if (!(v >= 0)) return;
-  settings.opening = {...opening(), [a]: v - sumOf(movs.filter(m => accOf(m) === a))};
+  settings.opening = {...opening(), [a]: v - accSum(a)};
   saveSettings(); shownBalance = faceBalance(curFace()); render(); toast(`${ACCS[a].emoji} Saldo de ${ACCS[a].name.toLowerCase()} ajustado`);
 });
 // Guarda al escribir: vacío = sin límite
@@ -1772,9 +1936,12 @@ const okAmount = v => typeof v === 'number' && isFinite(v) && v > 0 && v < 1e9;
 const okType = t => t === 'in' || t === 'out';
 const okCat = c => CATS.some(k => k.id === c);
 const cleanNote = n => typeof n === 'string' ? n.slice(0, 40) : '';
+const okAcc = a => a === 'card' || a === 'cash';
 function cleanMov(m){
-  if (!m || !okType(m.type) || !okAmount(m.amount) || !Number.isFinite(+m.id) || isNaN(new Date(m.date))) return null;
+  const tr = m && m.type === 'tr' && okAcc(m.from) && okAcc(m.to) && m.from !== m.to;
+  if (!m || !(okType(m.type) || tr) || !okAmount(m.amount) || !Number.isFinite(+m.id) || isNaN(new Date(m.date))) return null;
   const out = {id:+m.id, type:m.type, amount:Math.round(m.amount * 100) / 100, note:cleanNote(m.note), date:new Date(m.date).toISOString()};
+  if (tr) return {...out, from:m.from, to:m.to};
   if (m.type === 'out') out.cat = okCat(m.cat) ? m.cat : 'otros';
   if (typeof m.rec === 'string' && /^r\d+$/.test(m.rec)) out.rec = m.rec;
   if (m.acc === 'cash' || m.acc === 'card') out.acc = m.acc;
@@ -1858,6 +2025,7 @@ async function pullInbox(){
   pulling = true;
   try {
     const res = await fetch(`${INBOX}/pays?k=${inboxKey()}`, {cache:'no-store'});
+    if (res.status === 403){ inboxPrivate(); return; }
     if (!res.ok) return;
     const items = await res.json(); if (!Array.isArray(items) || !items.length) return;
     const seen = new Set(settings.payImported || []), fresh = [];
@@ -1887,14 +2055,27 @@ async function pullInbox(){
       () => { movs = movs.filter(m => !ids.includes(m.id)); save(); render(); });
   } catch {} finally { pulling = false; }
 }
+// El buzón es privado (solo el móvil del dueño): en los demás se apaga y se explica la alternativa sin servidor
+function inboxPrivate(){
+  const wasOn = settings.inboxOn;
+  settings.inboxOn = false; settings.inboxPrivate = true; saveSettings(); updateInboxUI();
+  if (wasOn) toast('La recogida automática es privada. Usa «Importar pagos» o «Pegar pagos»');
+}
 function updateInboxUI(){
   $('#inboxOn').checked = !!settings.inboxOn;
   $('#inboxCopy').hidden = !settings.inboxOn;
-  $('#inboxState').textContent = settings.inboxOn ? 'Activada · los pagos llegan solos al abrir la app' : 'Los pagos llegan solos al abrir la app';
+  $('#inboxState').textContent = settings.inboxOn ? 'Activada · los pagos llegan solos al abrir la app'
+    : settings.inboxPrivate ? 'Solo para el dueño de la app · usa Importar o Pegar pagos' : 'Los pagos llegan solos al abrir la app';
 }
-$('#inboxOn').addEventListener('change', e => {
-  settings.inboxOn = e.target.checked; if (settings.inboxOn) inboxKey(); saveSettings(); updateInboxUI();
-  if (settings.inboxOn) toast('⚡️ Activada · ahora copia el enlace para el atajo');
+$('#inboxOn').addEventListener('change', async e => {
+  if (!e.target.checked){ settings.inboxOn = false; saveSettings(); updateInboxUI(); return; }
+  // Antes de activarla se pregunta al buzón si este móvil tiene permiso
+  try {
+    const res = await fetch(`${INBOX}/pays?k=${inboxKey()}`, {cache:'no-store'});
+    if (res.status === 403){ settings.inboxOn = true; inboxPrivate(); return; }
+  } catch { e.target.checked = false; toast('Sin conexión · inténtalo con internet'); return; }
+  settings.inboxOn = true; settings.inboxPrivate = false; saveSettings(); updateInboxUI();
+  toast('⚡️ Activada · ahora copia el enlace para el atajo');
 });
 $('#inboxCopy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(inboxUrl()); toast('✓ Enlace copiado · pégalo en el atajo'); }
@@ -2028,6 +2209,210 @@ function openPayTray(list){
   });
 }
 
+// ── Bienvenida para quien abre la app por primera vez (cada persona, sus datos en su propio móvil) ──
+const isNewUser = () => !localStorage.getItem(KEY) && !settings.welcomed;
+function onboard(){ if (isNewUser()) setTimeout(showWelcome, 350); else maybeAskOpening(); }
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const SHARE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`;
+// Espera a que no haya ninguna hoja abierta (se cerró guardando o deslizando) y entonces sigue
+function afterSheet(fn){
+  const t = setInterval(() => { if (!body.classList.contains('sheet-open')){ clearInterval(t); setTimeout(fn, reduceMotion() ? 0 : 380); } }, 150);
+}
+function showWelcome(){
+  settings.welcomed = true; saveSettings();                      // solo se ofrece una vez (se puede repetir desde ⚙)
+  const pages = [`<div class="wpage"><img src="icon-192.png" alt="" class="wicon"><h3>Bienvenido a Mis Cuentas</h3>
+      <p>Apunta lo que gastas y lo que te entra, en tarjeta y en efectivo, y mira a dónde va tu dinero.</p>
+      <div class="safe"><span>🔒</span>Tus datos se guardan solo en este iPhone. Nadie más los ve, tampoco quien te pasó la app.</div></div>`];
+  if (!standalone()) pages.push(`<div class="wpage"><span class="ico bub wbig">📲</span><h3>Tenla siempre a mano</h3>
+      <p>En Safari toca <span class="share">${SHARE_SVG}</span> <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>. Se abrirá como una app más.</p></div>`);
+  const many = pages.length > 1;
+  openSheet(`<div class="welcome" id="welcome">${pages.join('')}</div>
+    ${many ? `<div class="wdots" id="wdots">${pages.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
+    <button class="primary" id="wNext">${many ? 'Siguiente' : 'Empezar'}</button>
+    <button class="wskip" id="wSkip">Ahora no</button>`, '', '#0EA5E9');
+  const w = $('#welcome'), cur = () => Math.round(w.scrollLeft / Math.max(1, w.clientWidth));
+  w.addEventListener('scroll', () => requestAnimationFrame(() => {
+    const i = cur(); $('#wdots')?.querySelectorAll('i').forEach((d, k) => d.classList.toggle('on', k === i));
+    $('#wNext').textContent = i < pages.length - 1 ? 'Siguiente' : 'Empezar';
+  }), {passive:true});
+  $('#wNext').addEventListener('click', () => {
+    if (cur() < pages.length - 1){ w.scrollTo({left:(cur() + 1) * w.clientWidth, behavior: reduceMotion() ? 'auto' : 'smooth'}); return; }
+    closeSheet();
+    setTimeout(() => { askOpening(true); afterSheet(startTour); }, reduceMotion() ? 0 : 420);
+  });
+  $('#wSkip').addEventListener('click', () => { closeSheet(); setTimeout(() => askOpening(true), reduceMotion() ? 0 : 420); });
+}
+
+// ── Tutorial: un foco de luz viaja por las piezas reales y solo deja tocar lo iluminado ──
+// Recetas: el foco se mueve desde donde está (interrumpible, sin saltos) con una curva sin rebote;
+// el globo entra con un pequeño muelle (press-release-spring). Cada paso avanza al HACER la acción.
+const coach = $('#coach'), hole = $('#coachHole'), tip = $('#coachTip'), blocks = [...coach.querySelectorAll('.coach-block')];
+const TOUR = [
+  {text:'Toca el <b>＋</b> para apuntar algo', target:() => $('#fab'), pad:8, rad:40,
+    done:() => body.classList.contains('menu-open')},
+  {text:'Elige <b>Gasto</b>', target:() => $('.opt.out .ico'), pad:10, rad:44, delay:420,
+    done:() => body.classList.contains('cluster-open'), back:() => !body.classList.contains('menu-open')},
+  {text:'¿En qué lo has gastado? Toca una burbuja, por ejemplo 🍔 Comida', target:() => [...document.querySelectorAll('.cb')], pad:12, rad:34, delay:620, where:'top',
+    done:() => body.classList.contains('sheet-open') && sheet.dataset.type === 'out', back:() => !body.classList.contains('cluster-open') && !body.classList.contains('sheet-open')},
+  {id:'amount', text:'Escribe cuánto has gastado y toca <b>Añadir gasto</b>', free:true, delay:300,
+    done:() => movs.length > tour.n0, back:() => !body.classList.contains('sheet-open')},
+  {text:'¡Tu primer gasto apuntado! 🎉 Mira cómo cambia el saldo.', target:() => $('#balCard'), pad:6, rad:30, delay:380, auto:2700},
+  {text:'Toca la tarjeta para ver cada cuenta: Total, 💳 Tarjeta y 💵 Efectivo', target:() => $('#balCard'), pad:6, rad:30,
+    done:() => settings.face !== tour.face0},
+  {text:'Ahora desliza la tarjeta hacia la izquierda para ver tu resumen', target:() => $('#pager'), pad:4, rad:30, delay:900,
+    done:() => page === 1},
+  {text:'¡Listo! Con el <b>＋</b> también apuntas ingresos y <b>mueves dinero</b> entre tarjeta y efectivo. Puedes repetir esta guía en ⚙.', center:true, final:true, delay:800},
+];
+const ACTION_STEPS = TOUR.filter(s => s.done);
+let tour = null, holeBox = null;
+function rectOf(t){
+  const rs = (Array.isArray(t) ? t : [t]).filter(Boolean).map(e => e.getBoundingClientRect()).filter(r => r.width);
+  if (!rs.length) return null;
+  return {left:Math.min(...rs.map(r => r.left)), top:Math.min(...rs.map(r => r.top)), right:Math.max(...rs.map(r => r.right)), bottom:Math.max(...rs.map(r => r.bottom))};
+}
+function placeHole(r, pad, rad, animate){
+  const b = {x:r.left - pad, y:r.top - pad, w:r.right - r.left + 2 * pad, h:r.bottom - r.top + 2 * pad};
+  const to = {transform:`translate(${b.x}px,${b.y}px)`, width:`${b.w}px`, height:`${b.h}px`, borderRadius:`${rad}px`};
+  if (animate && holeBox && !reduceMotion()){
+    // Desde la posición actual en pantalla: si se interrumpe a medio viaje, sigue sin saltos
+    const cs = getComputedStyle(hole);
+    hole.getAnimations().forEach(a => a.cancel());
+    hole.animate([{transform:cs.transform, width:cs.width, height:cs.height, borderRadius:cs.borderRadius}, to], {duration:560, easing:'cubic-bezier(.32,.72,0,1)'});
+  }
+  Object.assign(hole.style, to); holeBox = b;
+  // Cuatro bloques transparentes alrededor del agujero: solo se puede tocar lo iluminado
+  const W = innerWidth, H = innerHeight, set = (el, l, t, w, h) => Object.assign(el.style, {left:`${l}px`, top:`${t}px`, width:`${Math.max(0, w)}px`, height:`${Math.max(0, h)}px`});
+  set(blocks[0], 0, 0, W, b.y); set(blocks[1], 0, b.y + b.h, W, H - b.y - b.h);
+  set(blocks[2], 0, b.y, b.x, b.h); set(blocks[3], b.x + b.w, b.y, W - b.x - b.w, b.h);
+}
+function placeTip(s){
+  tip.style.top = tip.style.bottom = '';
+  if (s.center) tip.style.top = `${Math.max(20, innerHeight / 2 - tip.offsetHeight / 2)}px`;
+  else if (s.free || s.where === 'top' || !holeBox) tip.style.top = 'calc(env(safe-area-inset-top) + 14px)';
+  else if (holeBox.y + holeBox.h / 2 > innerHeight / 2) tip.style.bottom = `${innerHeight - holeBox.y + 18}px`;
+  else tip.style.top = `${holeBox.y + holeBox.h + 18}px`;
+}
+function layoutStep(s, animate){
+  coach.classList.toggle('free', !!s.free);
+  if (s.center) placeHole({left:innerWidth / 2, right:innerWidth / 2, top:innerHeight / 2, bottom:innerHeight / 2}, 0, 30, animate);
+  else if (!s.free){ const r = rectOf(s.target()); if (r) placeHole(r, s.pad, s.rad, animate); }
+  placeTip(s);
+}
+function startTour(){
+  if (tour) return;
+  body.classList.remove('menu-open'); closeCluster(); closeSheet(); closeGrow();
+  if (page !== 0) goPage(0);
+  if (scrollY > 0) scrollTo({top:0});
+  tour = {i:0, n0:movs.length, face0:settings.face, poll:0, t:0};
+  holeBox = null; coach.hidden = false;
+  if (!reduceMotion()) coach.animate({opacity:[0, 1]}, {duration:320, easing:'ease-out'});
+  goStep(0);
+}
+function goStep(i){
+  clearInterval(tour.poll); clearTimeout(tour.t);
+  tour.i = i;
+  const s = TOUR[i];
+  tip.getAnimations().forEach(a => a.cancel());
+  if (!reduceMotion()) tip.animate({opacity:[getComputedStyle(tip).opacity, 0]}, {duration:140, fill:'forwards'});
+  tour.t = setTimeout(() => showStep(s), s.delay || 0);
+}
+function showStep(s){
+  if (!tour) return;
+  if (s.id === 'amount') tour.n0 = movs.length;           // el gasto que cuenta es el que se apunta ahora
+  tour.face0 = settings.face;
+  $('#coachText').innerHTML = s.text;
+  tip.querySelector('.primary')?.remove();
+  if (s.final){
+    const b = document.createElement('button'); b.className = 'primary'; b.textContent = 'Empezar a usarla';
+    b.addEventListener('click', endTour); tip.insertBefore(b, tip.querySelector('.coach-foot'));
+  }
+  const n = ACTION_STEPS.indexOf(s);
+  $('#coachStep').textContent = n >= 0 ? `Paso ${n + 1} de ${ACTION_STEPS.length}` : '';
+  $('#coachSkip').hidden = !!s.final;
+  layoutStep(s, true);
+  tip.getAnimations().forEach(a => a.cancel());
+  if (!reduceMotion()) tip.animate([{opacity:0, transform:'translateY(10px) scale(.96)'}, {opacity:1, transform:'none'}], {duration:460, easing:'cubic-bezier(.34,1.36,.64,1)'});
+  if (s.auto) tour.t = setTimeout(() => goStep(tour.i + 1), s.auto);
+  if (s.done) tour.poll = setInterval(() => {
+    if (s.done()){ navigator.vibrate?.(6); goStep(tour.i + 1); }
+    else if (s.back?.()) goStep(0);                              // se cerró a medias: vuelve a empezar por el ＋
+  }, 120);
+}
+function endTour(){
+  if (!tour) return;
+  clearInterval(tour.poll); clearTimeout(tour.t); tour = null;
+  const fin = () => { coach.hidden = true; coach.classList.remove('free'); hole.getAnimations().forEach(a => a.cancel()); };
+  if (reduceMotion()) fin(); else coach.animate({opacity:[1, 0]}, {duration:280, easing:'ease-in'}).finished.then(fin);
+}
+$('#coachSkip').addEventListener('click', endTour);
+addEventListener('resize', () => { if (tour) layoutStep(TOUR[tour.i], false); });
+$('#tourBtn').addEventListener('click', () => fromSettings(startTour));
+
+// ── Bloqueo con Face ID (opcional): una llave de acceso del propio iPhone, sin servidor ──
+// Es una cortina de privacidad: el iPhone confirma que eres tú (Face ID o el código) y la app se abre.
+const lockEl = $('#lock');
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const canLock = () => !!(window.PublicKeyCredential && navigator.credentials?.create);
+const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+async function lockCreate(){
+  const cred = await navigator.credentials.create({publicKey:{
+    challenge:rnd(32), rp:{name:'Mis Cuentas'},
+    user:{id:rnd(16), name:'Mis Cuentas', displayName:'Mis Cuentas'},
+    pubKeyCredParams:[{type:'public-key', alg:-7}, {type:'public-key', alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred'},
+    attestation:'none', timeout:60000}});
+  settings.lockCred = b64u(cred.rawId); saveSettings();
+}
+const lockVerify = () => navigator.credentials.get({publicKey:{challenge:rnd(32), timeout:60000, userVerification:'required',
+  allowCredentials:[{type:'public-key', id:unb64u(settings.lockCred)}]}});
+let hiddenAt = 0;
+function showLock(){
+  if (!settings.lockCred || !lockEl.hidden) return;
+  lockEl.hidden = false; $('main').inert = true;
+  $('#lockMsg').textContent = 'Bloqueada'; $('#lockReset').hidden = true;
+}
+function hideLock(){
+  if (lockEl.hidden) return;
+  $('main').inert = false;
+  if (reduceMotion()){ lockEl.hidden = true; return; }
+  // Se deshace como un material: el contenido crece un poco y el cristal se desvanece
+  lockEl.querySelector('.lock-in').animate({transform:['none', 'scale(1.06)'], opacity:[1, 0]}, {duration:320, easing:'cubic-bezier(.32,.72,0,1)'});
+  lockEl.animate({opacity:[1, 0]}, {duration:380, easing:'ease-in'}).finished.then(() => lockEl.hidden = true);
+}
+$('#lockBtn').addEventListener('click', async () => {
+  try { await lockVerify(); navigator.vibrate?.(10); hideLock(); }
+  catch { $('#lockMsg').textContent = 'No se ha podido comprobar. Inténtalo otra vez.'; $('#lockReset').hidden = false; }
+});
+// Si la llave se borró del iPhone: crear otra también pide Face ID o el código, así que nadie más puede saltársela
+$('#lockReset').addEventListener('click', async () => {
+  try { await lockCreate(); hideLock(); toast('🔒 Bloqueo configurado de nuevo'); }
+  catch { $('#lockMsg').textContent = 'No se ha podido configurar. Inténtalo otra vez.'; }
+});
+document.addEventListener('visibilitychange', () => {
+  if (!settings.lockCred) return;
+  // Al salir se tapa ya, para que la vista de apps recientes no enseñe el saldo
+  if (document.hidden){ hiddenAt = Date.now(); showLock(); }
+  else if (Date.now() - hiddenAt < 60000) hideLock();           // vuelta rápida (menos de 1 minuto): sin pedir nada
+});
+function updateLockUI(){
+  $('#lockOn').checked = !!settings.lockCred;
+  $('#lockState').textContent = settings.lockCred ? 'Activado · pide Face ID al abrir la app' : canLock() ? 'Pide Face ID al abrir la app' : 'Este navegador no lo permite';
+}
+$('#lockOn').addEventListener('change', async e => {
+  const on = e.target.checked;
+  try {
+    if (on){
+      if (!canLock()) throw new Error('nope');
+      await lockCreate(); toast('🔒 Bloqueo activado');
+    } else {
+      await lockVerify();                                         // para quitarlo también hay que ser tú
+      delete settings.lockCred; saveSettings(); toast('Bloqueo desactivado');
+    }
+  } catch { toast(on ? 'No se ha activado el bloqueo' : 'No se ha quitado el bloqueo'); }
+  updateLockUI();
+});
+
 // ── Fijos: se apuntan solos el mismo día de cada mes (y los meses pendientes si la app no se abrió) ──
 function runRecurring(){
   const now = new Date(), added = [];
@@ -2058,6 +2443,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) retur
 const hoy = new Date().toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
 settings.face = 'all';   // cada arranque desde cero empieza en la cara Total
+showLock();              // con Face ID activado, la app abre tapada
 runRecurring();
 render();
 updateBackupUI();

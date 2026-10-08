@@ -18,6 +18,10 @@ export default {
 
     const k = url.searchParams.get('k') || '';
     if (!/^[a-f0-9]{32}$/.test(k)) return new Response('Clave no válida', { status: 400, headers: cors });
+    // Buzón privado: solo las claves del secreto ALLOWED_KEYS (separadas por comas). La app es pública,
+    // pero este servicio va en la cuenta de Cloudflare del dueño: nadie más deja aquí sus pagos.
+    const allowed = String(env.ALLOWED_KEYS || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!allowed.includes(k)) return Response.json({ error: 'private' }, { status: 403, headers: cors });
     const prefix = `p:${k}:`;
 
     // El atajo envía un pago (texto plano, JSON {"l": ...} o formulario)
