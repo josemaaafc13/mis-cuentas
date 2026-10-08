@@ -1,0 +1,8 @@
+name = "mis-cuentas-buzon"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+# El id del espacio KV se rellena al crearlo con: npx wrangler kv namespace create PAYS
+
+[[kv_namespaces]]
+binding = "PAYS"
+id = "eb1d94cdb3504f75afee772b1903e8eb"

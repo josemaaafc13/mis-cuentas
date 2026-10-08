@@ -1,6 +1,6 @@
 // Guarda la app en el móvil para que abra sin conexión.
 // Cambia VERSION cada vez que publiques cambios para que el móvil descargue la nueva.
-const VERSION = 'miscuentas-v13';
+const VERSION = 'miscuentas-v14';
 const FILES = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -14,6 +14,7 @@ self.addEventListener('activate', e => {
 // Red primero (para recibir cambios), y si no hay conexión, la copia guardada
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== location.origin) return;   // el buzón de pagos no se guarda en caché
   e.respondWith(
     fetch(e.request)
       .then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put(e.request, copy)); return res; })

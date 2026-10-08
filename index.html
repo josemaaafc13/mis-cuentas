@@ -335,6 +335,7 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .grp:empty{display:none}
 .row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 14px;text-align:left;font-weight:600}
 .row+.row{border-top:1px solid var(--line)}
+.row[hidden]{display:none}
 .row>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row small{display:block;color:var(--muted);font-weight:600;font-size:.76rem}
 .row .ico{width:32px;height:32px;font-size:.95rem}
@@ -616,6 +617,9 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 
     <h4 class="grp-t">Pagos de Apple Pay</h4>
     <div class="grp">
+      <label class="row"><span class="ico bub" style="--c:#22C55E">⚡️</span><span>Recogida automática<small id="inboxState">Los pagos llegan solos al abrir la app</small></span>
+        <input type="checkbox" class="sw" id="inboxOn" aria-label="Recogida automática"></label>
+      <button class="row" id="inboxCopy"><span class="ico bub" style="--c:#0EA5E9">🔗</span><span>Copiar enlace para el atajo</span><i>›</i></button>
       <button class="row" id="payGuide"><span class="ico bub" style="--c:#5E5CE6">💡</span><span>Cómo configurarlo</span><i>›</i></button>
       <button class="row" id="payImport"><span class="ico bub" style="--c:#0EA5E9">📲</span><span>Importar pagos (archivo)</span><i>›</i></button>
       <button class="row" id="payPaste"><span class="ico bub" style="--c:#FF9F0A">📝</span><span>Pegar pagos (desde Notas)</span><i>›</i></button>
@@ -1603,9 +1607,9 @@ function playIntro(){
   const end = () => {
     if (ended) return; ended = true;
     ov.getAnimations({subtree:true}).forEach(a => a.cancel()); ov.remove();
-    shownBalance = 0; render(); maybeAskOpening();
+    shownBalance = 0; render(); maybeAskOpening(); setTimeout(pullInbox, 700);
   };
-  if (!ov) return maybeAskOpening();
+  if (!ov){ maybeAskOpening(); setTimeout(pullInbox, 700); return; }
   if (reduceMotion() || /nointro/.test(location.search)){ ov.animate({opacity:[1, 0]}, {duration:300, fill:'forwards'}).finished.then(end); return; }
   ov.addEventListener('pointerdown', end, {once:true});
   const icon = ov.querySelector('.intro-icon'), ease = 'cubic-bezier(.32,.72,0,1)';
@@ -1635,7 +1639,7 @@ const settingsPanel = $('#settings'), gear = $('#gear');
 gear.addEventListener('click', () => openGrow(settingsPanel, gear, 21, renderSettings));
 
 function renderSettings(){
-  updateBackupUI(); updatePayNote();
+  updateBackupUI(); updatePayNote(); updateInboxUI();
   settingsPanel.querySelectorAll('[data-acc]').forEach(el => el.value = num2.format(Math.max(0, accBalance(el.dataset.acc))));
   // Presupuesto total y por categoría
   const bt = $('#budgetTotal'); bt.value = settings.budget ? num2.format(settings.budget) : '';
@@ -1791,6 +1795,65 @@ const GUESS = [
   ['regalos', /regalo|floristeria|juguet/],
 ];
 const guessCat = name => (GUESS.find(([, re]) => re.test(norm(name))) || ['comida'])[0];
+// ── Buzón automático: el atajo envía cada pago a un pequeño servicio propio (Cloudflare) y la app lo recoge al abrirse ──
+const INBOX = 'https://mis-cuentas-buzon.buzon.workers.dev';
+function inboxKey(){
+  if (!/^[a-f0-9]{32}$/.test(settings.inboxKey || '')){
+    settings.inboxKey = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
+    saveSettings();
+  }
+  return settings.inboxKey;
+}
+const inboxUrl = () => `${INBOX}/pay?k=${inboxKey()}`;
+let pulling = false;
+async function pullInbox(){
+  if (!settings.inboxOn || pulling || !navigator.onLine) return;
+  pulling = true;
+  try {
+    const res = await fetch(`${INBOX}/pays?k=${inboxKey()}`, {cache:'no-store'});
+    if (!res.ok) return;
+    const items = await res.json(); if (!Array.isArray(items) || !items.length) return;
+    const seen = new Set(settings.payImported || []), fresh = [];
+    for (const it of items){
+      if (!it || typeof it.line !== 'string' || typeof it.id !== 'string') continue;
+      const key = `inbox|${it.id.slice(0, 40)}`; if (seen.has(key)) continue;
+      const [amount, merchant] = it.line.split(';').map(x => x.trim());
+      const [p] = parsePayLines(JSON.stringify({amount, merchant, date: it.date}));
+      if (p){ p.key = key; fresh.push(p); }
+      seen.add(key);
+    }
+    // Se confirman todos (también los que no se entendieron) para que no se queden atascados en el buzón
+    fetch(`${INBOX}/ack?k=${inboxKey()}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(items.map(i => i && i.id).filter(Boolean))}).catch(() => {});
+    settings.payImported = [...seen].slice(-1000); settings.lastPayImport = new Date().toISOString(); saveSettings();
+    if (!fresh.length) return;
+    // Se añaden solos (categoría sugerida por el comercio); se pueden deshacer
+    const prev = accBalance('card'), before = spentBefore(fresh[0].cat), ids = [];
+    fresh.forEach((p, k) => { const id = Date.now() + k; ids.push(id);
+      movs.push({id, type:'out', amount:p.amount, cat:p.cat, note:p.merchant, date:p.date, acc:'card'}); });
+    chartDrawn = false; save();
+    settings.face = 'card'; saveSettings(); shownBalance = prev;
+    if (scrollY > 0) scrollTo({top:0}); if (page !== 0) goPage(0);
+    const total = fresh.reduce((t, p) => t + p.amount, 0);
+    render('out', total); budgetAlert(before, movs.at(-1));
+    navigator.vibrate?.(12);
+    toast(`📲 ${fresh.length} ${fresh.length === 1 ? 'pago de Apple Pay añadido' : 'pagos de Apple Pay añadidos'}`,
+      () => { movs = movs.filter(m => !ids.includes(m.id)); save(); render(); });
+  } catch {} finally { pulling = false; }
+}
+function updateInboxUI(){
+  $('#inboxOn').checked = !!settings.inboxOn;
+  $('#inboxCopy').hidden = !settings.inboxOn;
+  $('#inboxState').textContent = settings.inboxOn ? 'Activada · los pagos llegan solos al abrir la app' : 'Los pagos llegan solos al abrir la app';
+}
+$('#inboxOn').addEventListener('change', e => {
+  settings.inboxOn = e.target.checked; if (settings.inboxOn) inboxKey(); saveSettings(); updateInboxUI();
+  if (settings.inboxOn) toast('⚡️ Activada · ahora copia el enlace para el atajo');
+});
+$('#inboxCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(inboxUrl()); toast('✓ Enlace copiado · pégalo en el atajo'); }
+  catch { prompt('Copia este enlace para el atajo:', inboxUrl()); }
+});
+
 // Sin fecha en la línea, se identifica por su número de línea: el atajo solo añade al final del archivo
 const payKey = p => `${p.dated ? p.date.slice(0, 16) : 'L' + p.line}|${p.amount.toFixed(2)}|${p.merchant.toLowerCase()}`;
 function parsePayLines(text){
@@ -1825,14 +1888,14 @@ $('#payGuide').addEventListener('click', () => fromSettings(() => {
     <div class="sheet-head"><h3>Pagos de Apple Pay</h3><button class="close" data-close>✕</button></div>
     <p class="grp-note" style="margin:0 2px">Una vez configurado, cada vez que pagues con Apple Pay el iPhone guarda el pago y te avisa. Luego aquí, en ⚙ → Importar pagos, los añades.</p>
     <ol class="steps">
-      <li>Abre la app <b>Atajos</b> y toca la pestaña <b>Automatización</b> (abajo).</li>
-      <li>Toca <b>+</b> (o <b>Nueva automatización</b>) y busca <b>Transacción</b> (icono de Wallet). Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b> y toca <b>Siguiente</b> → <b>Nueva automatización en blanco</b>.</li>
-      <li>Toca <b>Añadir acción</b>, busca <b>Texto</b> y añádelo. Toca dentro del recuadro: encima del teclado sale <b>Entrada del atajo</b>; tócalo y luego toca la variable que aparece para elegir <b>Importe</b>. Escribe un <b>;</b> y repite eligiendo <b>Comercio</b>. Debe quedar: <span class="code" style="display:inline-block;margin:4px 0;padding:4px 8px">Importe;Comercio</span></li>
-      <li>Añade la acción <b>Añadir al archivo de texto</b>. Se ve como una frase: «Añadir <b>Texto</b> a <b>…</b>». La primera palabra azul ya debe ser <b>Texto</b>. Toca la segunda parte azul y escribe <b>mis-cuentas-pagos.txt</b>. Toca la flechita <b>›</b> de la acción para ver más opciones y activa <b>Crear nueva línea</b>.
-        <br><small style="color:var(--muted)">¿No te deja o te pide elegir un archivo que no existe? Usa el plan B: en vez de esta acción añade <b>Añadir a la nota</b>, elige o crea la nota <b>Mis Cuentas pagos</b>, y luego aquí usa ⚙ → <b>Pegar pagos</b>.</small></li>
-      <li>(Opcional) Añade <b>Mostrar notificación</b> y escribe «💳 Pago guardado para Mis Cuentas».</li>
-      <li>Toca <b>OK</b>. Paga algo con Apple Pay y luego, en esta app, ⚙ → <b>Importar pagos</b> → Atajos → <b>mis-cuentas-pagos.txt</b>.</li>
+      <li>Aquí en ⚙ activa <b>Recogida automática</b> y toca <b>Copiar enlace para el atajo</b>.</li>
+      <li>Abre <b>Atajos</b> → <b>Automatización</b> → <b>+</b> → <b>Transacción</b>. Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b> → <b>Siguiente</b> → <b>Nueva automatización en blanco</b>.</li>
+      <li>Añade <b>Texto</b>. Toca dentro, toca <b>Entrada del atajo</b> → toca la etiqueta azul → <b>Importe</b>. Escribe <b>;</b> y repite con <b>Comercio</b>. Queda: <span class="code" style="display:inline-block;margin:4px 0;padding:4px 8px">Importe;Comercio</span></li>
+      <li>Añade <b>Obtener contenido de URL</b>. Toca <b>URL</b> y <b>pega</b> el enlace que copiaste. Toca la flechita <b>›</b> de la acción: <b>Método</b> → <b>POST</b>; <b>Cuerpo de la solicitud</b> → <b>Archivo</b>; en <b>Archivo</b> elige la variable <b>Texto</b>.</li>
+      <li>(Opcional) Añade <b>Mostrar notificación</b>: «💳 Pago enviado a Mis Cuentas».</li>
+      <li>Toca <b>OK</b>. A partir de ahora, cada vez que pagues con Apple Pay, al abrir esta app el pago aparecerá solo.</li>
     </ol>
+    <p class="grp-note" style="margin:6px 2px 0">¿Sin internet o no quieres el enlace? También puedes usar <b>Añadir a la nota</b> y luego ⚙ → <b>Pegar pagos</b>.</p>
     <p class="grp-note" style="margin:6px 2px 0">Si no aparece «Transacción»: necesitas iOS 17 o posterior y una tarjeta añadida a Wallet para Apple Pay. Solo registra pagos con Apple Pay; los ingresos y Bizum no pasan por Wallet.</p>`, '', '#5E5CE6');
 }));
 $('#payImport').addEventListener('click', () => $('#payFile').click());
@@ -1943,7 +2006,7 @@ function runRecurring(){
                                             : `↻ ${added.length} movimientos fijos apuntados`), 900);
   return true;
 }
-document.addEventListener('visibilitychange', () => { if (!document.hidden && runRecurring()) render(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (runRecurring()) render(); pullInbox(); });
 
 const hoy = new Date().toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
 $('#today').textContent = hoy[0].toUpperCase() + hoy.slice(1);
