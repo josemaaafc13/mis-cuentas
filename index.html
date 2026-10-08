@@ -390,16 +390,37 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .card-wrap.cash .blob.b1{background:#34D399} .card-wrap.cash .blob.b2{background:#A7F3D0} .card-wrap.cash .blob.b4{background:#2DD4BF}
 .card-wrap.cash .card{background:rgba(220,252,231,.28)}
 /* Cara Total: «aurora» que mezcla el azul de la tarjeta y el verde del efectivo, con un toque lavanda */
-.card-wrap.all .blob.b1{background:#38BDF8} .card-wrap.all .blob.b2{background:#6EE7B7}
-.card-wrap.all .blob.b3{background:#2DD4BF} .card-wrap.all .blob.b4{background:#A5B4FC}
-.card-wrap.all .card{background:rgba(204,251,241,.26)}
+/* Cara Total: verde azulado profundo (#0E4F5C → #127A70) con brillo azul arriba-izquierda y verde abajo-derecha.
+   La piel vive en ::before y se funde con opacidad, igual que el resto de cambios de cara */
+.card::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;opacity:0;
+  background:radial-gradient(75% 90% at 0% 0%,rgba(109,211,250,.62),transparent 62%),
+             radial-gradient(70% 80% at 100% 100%,rgba(126,240,180,.45),transparent 60%),
+             linear-gradient(150deg,#0E4F5C,#127A70);
+  transition:opacity .8s var(--ease-ios)}
+.card-wrap.all .card::before{opacity:1}
+.card-wrap .blob{transition:background-color .8s var(--ease-ios),opacity .8s var(--ease-ios)}
+.card-wrap.all .blob{opacity:0}
+.card,.card .label,.stat span,.acc-total,.net small,.legend,.budget small,.more,.balance{transition:color .8s var(--ease-ios)}
+#chart text{transition:fill .8s var(--ease-ios)}
+.card-wrap.all .card{color:#F2FBFA;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(255,255,255,.12),0 10px 30px rgba(4,30,36,.35)}
+.card-wrap.all .card .label,.card-wrap.all .stat span,.card-wrap.all .acc-total,.card-wrap.all .net small,
+.card-wrap.all .legend,.card-wrap.all .budget small,.card-wrap.all .more{color:#BFEDE6}
+.card-wrap.all #chart text{fill:#BFEDE6}
+.card-wrap.all #chart .grid,.card-wrap.all .stats,.card-wrap.all .stat+.stat{border-color:rgba(255,255,255,.14);stroke:rgba(255,255,255,.14)}
+.card-wrap.all .flip-hint,.card-wrap.all .more{background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.card-wrap.all .b-track{background:rgba(255,255,255,.15)}
+.card-wrap.all .legend i{background:#7EF0B4} .card-wrap.all .legend .lo i{background:#FFA8A2}
+.card-wrap.all .balance.counting-in,.card-wrap.all .delta.in{color:#7EF0B4}
+.card-wrap.all .balance.counting-out,.card-wrap.all .delta.out{color:#FFA8A2}
+.card-wrap.all .delta{background:rgba(255,255,255,.12)}
+.card-wrap.all .dot{background:rgba(255,255,255,.9)}
 /* Puntitos: en qué cara estás (Total, Tarjeta, Efectivo) */
 .face-dots{display:flex;gap:4px;margin-left:2px}
 .face-dots i{width:16px;height:6px;border-radius:3px;background:currentColor;opacity:.25;transform:scaleX(.375);
   transition:transform .35s var(--ease-ios),opacity .35s,background-color .35s}
 .face-dots{gap:0}
 .face-dots i.on{transform:none;opacity:1}
-.face-dots i:nth-child(1).on{background:#0D9488} .face-dots i:nth-child(2).on{background:#0284C7} .face-dots i:nth-child(3).on{background:#16A34A}
+.face-dots i:nth-child(1).on{background:#7EF0B4} .face-dots i:nth-child(2).on{background:#0284C7} .face-dots i:nth-child(3).on{background:#16A34A}
 .sheen{position:absolute;top:-30%;bottom:-30%;left:0;width:40%;pointer-events:none;opacity:0;z-index:2;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-120%) skewX(-14deg)}
 /* Odómetro: cada dígito es una ventana de una línea con una columna de números que sube */
@@ -408,10 +429,10 @@ body.zoom-open .scrim{opacity:1;pointer-events:auto}
 .odo-c i{display:block;font-style:normal;height:1.05em;line-height:1.05em}
 .odo-s{display:inline-block;height:1.05em;line-height:1.05em;vertical-align:top;white-space:pre}
 .zoom.cash{background:linear-gradient(180deg,color-mix(in srgb,#22C55E 18%,var(--lg-top)),var(--lg-bottom) 70%)}
-.zoom.all{background:linear-gradient(180deg,color-mix(in srgb,#14B8A6 18%,var(--lg-top)),var(--lg-bottom) 70%)}
+.zoom.all{background:linear-gradient(180deg,color-mix(in srgb,#127A70 22%,var(--lg-top)),var(--lg-bottom) 70%)}
 @media (prefers-color-scheme:dark){.acc-total{color:#B5D3E8} .flip-hint{background:rgba(255,255,255,.1);box-shadow:none}
-  .card-wrap.cash .card{background:rgba(6,40,30,.32)} .card-wrap.all .card{background:rgba(4,38,40,.32)}
-  .face-dots i:nth-child(1).on{background:#2DD4BF} .face-dots i:nth-child(2).on{background:#38BDF8} .face-dots i:nth-child(3).on{background:#4ADE80}}
+  .card-wrap.cash .card{background:rgba(6,40,30,.32)}
+  .face-dots i:nth-child(1).on{background:#7EF0B4} .face-dots i:nth-child(2).on{background:#38BDF8} .face-dots i:nth-child(3).on{background:#4ADE80}}
 
 /* Selector de cuenta al añadir */
 .accs{display:flex;justify-content:center;gap:22px;margin:12px 0 2px}
@@ -890,7 +911,8 @@ function drawChart(animate){
   const svg = $('#chart'), W = svg.clientWidth || 300, H = 118, top = 8, bottom = H - 18, pad = 14;
   const max = Math.max(1, ...data.flatMap(x => [x.in, x.out])) * 1.1;
   const X = k => pad + k * (W - 2*pad) / (data.length - 1), Y = v => bottom - (v / max) * (bottom - top);
-  const series = [['in','#22C55E'], ['out','#FF3B30']].map(([key, color]) => {
+  const deep = curFace() === 'all';   // sobre la piel profunda, tonos claros que se leen
+  const series = [['in', deep ? '#7EF0B4' : '#22C55E'], ['out', deep ? '#FFA8A2' : '#FF3B30']].map(([key, color]) => {
     const pts = data.map((x,k) => [X(k), Y(x[key])]), line = smoothPath(pts);
     return {key, color, line, area:`${line} L${pts.at(-1)[0]},${bottom} L${pts[0][0]},${bottom} Z`, last:pts.at(-1)};
   });
@@ -901,7 +923,7 @@ function drawChart(animate){
     <line class="grid" x1="${pad}" x2="${W-pad}" y1="${(top+bottom)/2}" y2="${(top+bottom)/2}"/>
     ${series.map(s => `<path class="area" d="${s.area}" fill="url(#g-${s.key})"/>
       <path class="line" d="${s.line}" fill="none" stroke="${s.color}" stroke-width="2.6" stroke-linecap="round"/>
-      <circle class="end" cx="${s.last[0]}" cy="${s.last[1]}" r="4" fill="${s.color}" stroke="#fff" stroke-width="2"/>`).join('')}
+      <circle class="end" cx="${s.last[0]}" cy="${s.last[1]}" r="4" fill="${s.color}" stroke="${deep ? '#0E4F5C' : '#fff'}" stroke-width="2"/>`).join('')}
     ${data.map((x,k) => `<text x="${X(k)}" y="${H-3}">${x.label}</text>`).join('')}`;
   if (animate) animateChart();
 }
